@@ -1,5 +1,4 @@
-module MainTickSvg exposing (..)
-
+module Main exposing (..)
 import Browser
 import GraphicSVG.App exposing (graphicsApp)
 import GraphicSVG as Svg
@@ -15,13 +14,16 @@ import Random
 import List.Extra as LE
 import GraphicSVG.App exposing (KeyState(..))
 
-type alias Model = 
-    { widget : Widget.Model
-    , width : Float
+type alias SvgModel =
+    { width : Float
     , height : Float
+    }
+
+type alias Model = 
+    { svgModel : SvgModel 
     , dimensions : Int 
-    , tiles : List Tile
     , entropy : Int
+    , tiles : List Tile
     , previousTiles : Maybe (List Tile)
     } 
 

@@ -6,14 +6,17 @@ import Html exposing (img)
 import Tile exposing (Tile)
 import Tile exposing (Rule(..))
 import Tile exposing (rotate)
+import GraphicSVG exposing (move)
 
 downTile : Shape msg
 downTile = 
-    html 50.0 50.0 <| img [ HA.src "/down.png" ] []
+    (html 50.0 50.0 <| img [ HA.src "/down.png" ] [])
+        |> move (-50/2, 50/2)
 
 blankTile : Shape msg
 blankTile = 
-    html 50.0 50.0 <| img [ HA.src "/blank.png" ] []
+    (html 50.0 50.0 <| img [ HA.src "/blank.png" ] [])
+        |> move (-50/2, 50/2)
 
 openTile : Shape msg
 openTile = 

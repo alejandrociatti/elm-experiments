@@ -2,11 +2,19 @@ module Main exposing(main)
 
 import Types exposing (..)
 import View exposing (board)
+import Grid exposing (collapse)
 import GraphicSVG exposing (collage, text, centered, size, filled, move, hotPink)
 import GraphicSVG.EllieApp exposing (KeyState(..), Keys(..), gameApp, GameApp)
 import GraphicSVG exposing (Collage)
 import Tileset1 exposing (tiles)
+import List.Extra exposing (init)
 
+initSettings : Settings
+initSettings =
+    { width = 600
+    , height = 600
+    , dimensions = 10 
+    }
 
 
 main : GameApp Model Msg
@@ -31,12 +39,7 @@ init =
     , lastComputation = 0
     }
 
-initSettings : Settings
-initSettings =
-    { width = 600
-    , height = 600
-    , dimensions = 3
-    }
+
 
 initGrid : Settings -> List GridTile
 initGrid { dimensions } =
@@ -46,21 +49,29 @@ initGrid { dimensions } =
 
 update : Msg -> Model -> Model
 update msg model =
+    let
+        dimensions =
+            model.settings.dimensions
+
+        {lastComputation, grid} = model
+    in
     case msg of
         NoOp ->
             model
 
         Tick time ( keyf, ( x0, y0 ), ( x1, y1 ) ) ->
-            let
-                (computationTime, newGrid) =
-                    collapseEvery 5 model.lastComputation time model.grid
-            in
-            { model 
-                | time = time
-                , change = keyf (Key "r") == Down
-                , lastComputation = computationTime
-                , grid = newGrid
-            }
+            if keyf (Key "r") == Down then
+                init
+            else
+                let
+                    (computationTime, newGrid) =
+                        collapseEvery 0.5 lastComputation time dimensions grid
+                in
+                { model 
+                    | time = time
+                    , lastComputation = computationTime
+                    , grid = newGrid
+                }
 
 
 view : Model -> Collage Msg
@@ -75,11 +86,10 @@ view model =
         ]
 
 
--- collapseEvery 5 time model.grid
-collapseEvery : Float -> Float -> Float -> List GridTile -> (Float, List GridTile) 
-collapseEvery waitSeconds previousTime currentTime grid =
+collapseEvery : Float -> Float -> Float -> Int -> List GridTile -> (Float, List GridTile) 
+collapseEvery waitSeconds previousTime currentTime dimensions grid =
     if currentTime - previousTime > waitSeconds then
-        (currentTime, collapse currentTime grid)
+        (currentTime, collapse dimensions currentTime grid)
     else
         (previousTime, grid)
 

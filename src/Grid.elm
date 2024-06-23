@@ -1,29 +1,20 @@
 module Grid exposing (collapse)
 import Types exposing (GridTile(..))
 import List.Extra as LE
-import Tile exposing (Tile)
+import Tile as Tile exposing (Tile)
 import Types exposing (Msg)
+import Canvas.Texture exposing (dimensions)
+import Tile exposing (Direction)
 
 
 collapse : Int -> Float -> List GridTile -> List GridTile
 collapse dimensions time grid =
-    let
-        collapseAt =
-            tileToCollapseIndex time grid
+    tileToCollapseIndex time grid
+        |> Maybe.map (collapseTile time grid)
+        |> Maybe.andThen (cascadeCollapse dimensions)
+        |> Maybe.withDefault grid
 
-        temporaryCollapse =
-            collapseAt
-                |> Maybe.map (collapseTile time grid)
-                -- |> Maybe.andThen (cascadeCollapse dimensions)
-
-    in
-    -- case temporaryCollapse of
-    --     Just collapsed ->
-    --         collapsed 
-
-    --     Nothing ->
-    --         grid
-
+   
 
 collapseTile : Float -> List GridTile -> Int -> List GridTile
 collapseTile time grid index =
@@ -82,40 +73,56 @@ cascadeCollapse dimensions grid =
 
 collapser : Int -> List GridTile -> List (Tile Int Msg) -> Int -> List (Tile Int Msg) 
 collapser dimensions grid tiles index =
-    let
-        leftIndexValid =
-            lastIndicesOfRow dimensions
-                |> LE.notMember index
-
-        rightIndexValid =
-            firstIndicesOfRow dimensions
-                |> LE.notMember index
-
-        up =
-            LE.getAt (index - dimensions) tiles
-
-        right =
-            if rightIndexValid then
-                LE.getAt (index + 1) tiles
-            else
-                Nothing
-
-        down =
-            LE.getAt (index + dimensions) tiles
-
-        left =
-            if leftIndexValid then
-                LE.getAt (index - 1) tiles
-            else
-                Nothing
-
-    in
     tiles
-        |> lookUp up 
-        |> lookRight right
-        |> lookDown down 
-        |> lookLeft left 
+        |> lookUp dimensions index grid
+        |> lookRight dimensions index grid 
+        |> lookDown dimensions index grid 
+        |> lookLeft dimensions index grid 
 
+
+lookUp : Int -> Int -> List GridTile -> List (Tile Int Msg) -> List (Tile Int Msg) 
+lookUp dimensions index grid tiles =
+    if index - dimensions >= 0 then
+        lookAt Tile.Up (LE.getAt (index - dimensions) grid) tiles
+    else
+        tiles
+
+lookRight : Int -> Int -> List GridTile -> List (Tile Int Msg) -> List (Tile Int Msg) 
+lookRight dimensions index grid tiles =
+    if shouldLookRight dimensions index then
+        lookAt Tile.Right (LE.getAt (index + 1) grid) tiles
+    else
+        tiles
+
+lookDown : Int -> Int -> List GridTile -> List (Tile Int Msg) -> List (Tile Int Msg) 
+lookDown dimensions index grid tiles =
+    if index + dimensions < List.length grid then
+        lookAt Tile.Down (LE.getAt (index + dimensions) grid) tiles
+    else
+        tiles
+
+
+lookLeft : Int -> Int -> List GridTile -> List (Tile Int Msg) -> List (Tile Int Msg) 
+lookLeft dimensions index grid tiles =
+    if shouldLookLeft dimensions index then
+        lookAt Tile.Left (LE.getAt (index - 1) grid) tiles
+    else
+        tiles
+
+
+lookAt : Direction -> Maybe GridTile -> List (Tile Int Msg) -> List (Tile Int Msg)
+lookAt direction maybeTile tiles = 
+    case maybeTile of
+        Just gridTile ->
+            case gridTile of 
+                Collapsed tile ->
+                    tiles |> List.filter (Tile.filter direction tile)
+
+                Open _ ->
+                    tiles
+
+        Nothing ->
+            tiles
 
 
 lowestEntropy : List GridTile -> Int
@@ -176,8 +183,11 @@ probability elapsedTime =
     let
         -- Get the decimal part of the elapsed time
         decimalPart = elapsedTime - toFloat (floor elapsedTime)
+        -- Simple hash function to scramble the decimal part
+        hash n = floor (100 * abs (sin (n * 1000)))
         -- Scale the decimal part to a value between 0 and 100
-        scaledValue = floor (decimalPart * 100)
+        scaledValue = modBy 101 (hash decimalPart)
+           
     in
     scaledValue
 
@@ -194,3 +204,14 @@ firstIndicesOfRow dim =
     lastIndicesOfRow dim
         |> List.map (\index -> index - dim + 1)
 
+
+shouldLookRight : Int -> Int -> Bool
+shouldLookRight dimensions index =
+    lastIndicesOfRow dimensions
+        |> LE.notMember index
+
+
+shouldLookLeft : Int -> Int -> Bool
+shouldLookLeft dimensions index =
+    firstIndicesOfRow dimensions
+        |> LE.notMember index

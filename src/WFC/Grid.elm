@@ -1,16 +1,18 @@
-module Grid exposing (collapse)
+module WFC.Grid exposing (collapse)
+
 import Types exposing (GridTile(..))
 import List.Extra as LE
 import Tile as Tile exposing (Tile)
 import Types exposing (Msg)
 import Canvas.Texture exposing (dimensions)
-import Tile exposing (Direction)
+import WFC.Tile exposing (Direction)
 
 
 collapse : Int -> Float -> List GridTile -> List GridTile
 collapse dimensions time grid =
     tileToCollapseIndex time grid
         |> Maybe.map (collapseTile time grid)
+        |> Maybe.andThen (cascadeCollapse dimensions)
         |> Maybe.andThen (cascadeCollapse dimensions)
         |> Maybe.withDefault grid
 
@@ -116,7 +118,7 @@ lookAt direction maybeTile tiles =
         Just gridTile ->
             case gridTile of 
                 Collapsed tile ->
-                    tiles |> List.filter (Tile.filter direction tile)
+                    tiles |> List.filter (WFC.Tile.filter direction tile)
 
                 Open _ ->
                     tiles

@@ -1,10 +1,10 @@
-module Tile exposing (..)
-import GraphicSVG as Graphics exposing (Shape)
+module WFC.Common.Tile exposing (..)
 
 
 type Rule a
     = AllSides a
     | Symmetrical a a a a
+
 
 type Direction
     = Up
@@ -12,20 +12,22 @@ type Direction
     | Down
     | Left
 
-type alias Tile a msg =
+
+type alias Tile a b =
     { rule : Rule a
-    , view : Shape msg
+    , view : b
     }
 
-rotate : Tile a msg -> Tile a msg
-rotate tile =
+
+rotate : (b -> b) -> Tile a b -> Tile a b
+rotate rotateView tile =
     case tile.rule of
         AllSides _ ->
             tile
 
         Symmetrical up right down left ->
             { rule = Symmetrical left up right down
-            , view = tile.view |> Graphics.rotate (degrees -90) 
+            , view = tile.view |> rotateView
             }
 
 
@@ -39,7 +41,6 @@ filter direction tile tileToCheck =
             getDirectionValue direction tileToCheck
     in
     existingTileRule == toCheckTileRule
-     
 
 
 oppositeDirection : Direction -> Direction
@@ -51,7 +52,7 @@ oppositeDirection direction =
         Down ->
             Up
 
-        Left -> 
+        Left ->
             Right
 
         Right ->
@@ -66,7 +67,7 @@ getDirectionValue direction tile =
 
         Symmetrical up right down left ->
             case direction of
-                Up -> 
+                Up ->
                     up
 
                 Right ->
@@ -77,4 +78,3 @@ getDirectionValue direction tile =
 
                 Left ->
                     left
-

@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "elm-canvas": "^2.2.4",
     "elm-test": "^0.19.1-revision12"
   },
   "devDependencies": {

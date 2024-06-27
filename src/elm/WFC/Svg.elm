@@ -1,19 +1,19 @@
-module Main exposing(main)
+module WFC.Svg exposing (main)
 
-import Types exposing (..)
-import View exposing (board)
-import Grid exposing (collapse)
-import GraphicSVG exposing (collage, text, centered, size, filled, move, hotPink)
-import GraphicSVG.EllieApp exposing (KeyState(..), Keys(..), gameApp, GameApp)
-import GraphicSVG exposing (Collage)
-import Tileset1 exposing (tiles)
+import GraphicSVG exposing (Collage, centered, collage, filled, hotPink, move, size, text)
+import GraphicSVG.EllieApp exposing (GameApp, KeyState(..), Keys(..), gameApp)
 import List.Extra exposing (init)
+import WFC.Svg.Grid exposing (collapse)
+import WFC.Svg.Tileset1 exposing (tiles)
+import WFC.Svg.Types exposing (..)
+import WFC.Svg.View exposing (board)
+
 
 initSettings : Settings
 initSettings =
     { width = 600
     , height = 600
-    , dimensions = 10 
+    , dimensions = 10
     }
 
 
@@ -26,6 +26,7 @@ main =
         , title = "GameApp Template"
         }
 
+
 init : Model
 init =
     let
@@ -34,17 +35,16 @@ init =
     in
     { time = 0
     , change = False
-    , settings = settings 
+    , settings = settings
     , grid = initGrid settings
     , lastComputation = 0
     }
 
 
-
 initGrid : Settings -> List GridTile
 initGrid { dimensions } =
     List.range 0 (dimensions * dimensions - 1)
-        |> List.map(always (Open tiles))
+        |> List.map (always (Open tiles))
 
 
 update : Msg -> Model -> Model
@@ -53,7 +53,8 @@ update msg model =
         dimensions =
             model.settings.dimensions
 
-        {lastComputation, grid} = model
+        { lastComputation, grid } =
+            model
     in
     case msg of
         NoOp ->
@@ -62,12 +63,13 @@ update msg model =
         Tick time ( keyf, ( x0, y0 ), ( x1, y1 ) ) ->
             if keyf (Key "r") == Down then
                 init
+
             else
                 let
-                    (computationTime, newGrid) =
+                    ( computationTime, newGrid ) =
                         collapseEvery 0.25 lastComputation time dimensions grid
                 in
-                { model 
+                { model
                     | time = time
                     , lastComputation = computationTime
                     , grid = newGrid
@@ -76,22 +78,25 @@ update msg model =
 
 view : Model -> Collage Msg
 view model =
-    collage model.settings.width (model.settings.height + 24)
+    collage model.settings.width
+        (model.settings.height + 24)
         [ text "Press \"r\" to reset drawing"
             |> size 24
             |> centered
-            |> filled hotPink 
+            |> filled hotPink
             |> move ( 0, 284 )
         , board model.settings model.grid
         ]
 
 
-collapseEvery : Float -> Float -> Float -> Int -> List GridTile -> (Float, List GridTile) 
+collapseEvery : Float -> Float -> Float -> Int -> List GridTile -> ( Float, List GridTile )
 collapseEvery waitSeconds previousTime currentTime dimensions grid =
     if currentTime - previousTime > waitSeconds then
-        (currentTime, collapse dimensions currentTime grid)
+        ( currentTime, collapse dimensions currentTime grid )
+
     else
-        (previousTime, grid)
+        ( previousTime, grid )
+
 
 
 -- timeExamples : Model -> List (Shape Msg)
@@ -100,7 +105,6 @@ collapseEvery waitSeconds previousTime currentTime dimensions grid =
 --             |> filled
 --                 (if model.change then
 --                     green
-
 --                  else
 --                     orange
 --                 )
@@ -108,5 +112,3 @@ collapseEvery waitSeconds previousTime currentTime dimensions grid =
 --         |> outlined (dashed 2) hotPink
 --         |> rotate (degrees (10 * model.time))
 --     ]
-
-

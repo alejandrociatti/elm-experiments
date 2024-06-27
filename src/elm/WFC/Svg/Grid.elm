@@ -1,11 +1,9 @@
-module WFC.Grid exposing (collapse)
+module WFC.Svg.Grid exposing (collapse)
 
-import Types exposing (GridTile(..))
-import List.Extra as LE
-import Tile as Tile exposing (Tile)
-import Types exposing (Msg)
 import Canvas.Texture exposing (dimensions)
-import WFC.Tile exposing (Direction)
+import List.Extra as LE
+import WFC.Common.Tile as Tile exposing (Direction)
+import WFC.Svg.Types exposing (GridTile(..), Tile)
 
 
 collapse : Int -> Float -> List GridTile -> List GridTile
@@ -16,7 +14,6 @@ collapse dimensions time grid =
         |> Maybe.andThen (cascadeCollapse dimensions)
         |> Maybe.withDefault grid
 
-   
 
 collapseTile : Float -> List GridTile -> Int -> List GridTile
 collapseTile time grid index =
@@ -40,6 +37,7 @@ collapseTile time grid index =
                         tile
             )
 
+
 cascadeCollapse : Int -> List GridTile -> Maybe (List GridTile)
 cascadeCollapse dimensions grid =
     let
@@ -60,7 +58,6 @@ cascadeCollapse dimensions grid =
                         list ->
                             Just <| Open list
 
-
         newGridOfMaybeTiles : List GridTile
         newGridOfMaybeTiles =
             grid
@@ -69,56 +66,63 @@ cascadeCollapse dimensions grid =
     in
     if List.length newGridOfMaybeTiles == List.length grid then
         Just newGridOfMaybeTiles
+
     else
         Nothing
 
 
-collapser : Int -> List GridTile -> List (Tile Int Msg) -> Int -> List (Tile Int Msg) 
+collapser : Int -> List GridTile -> List Tile -> Int -> List Tile
 collapser dimensions grid tiles index =
     tiles
         |> lookUp dimensions index grid
-        |> lookRight dimensions index grid 
-        |> lookDown dimensions index grid 
-        |> lookLeft dimensions index grid 
+        |> lookRight dimensions index grid
+        |> lookDown dimensions index grid
+        |> lookLeft dimensions index grid
 
 
-lookUp : Int -> Int -> List GridTile -> List (Tile Int Msg) -> List (Tile Int Msg) 
+lookUp : Int -> Int -> List GridTile -> List Tile -> List Tile
 lookUp dimensions index grid tiles =
     if index - dimensions >= 0 then
         lookAt Tile.Up (LE.getAt (index - dimensions) grid) tiles
+
     else
         tiles
 
-lookRight : Int -> Int -> List GridTile -> List (Tile Int Msg) -> List (Tile Int Msg) 
+
+lookRight : Int -> Int -> List GridTile -> List Tile -> List Tile
 lookRight dimensions index grid tiles =
     if shouldLookRight dimensions index then
         lookAt Tile.Right (LE.getAt (index + 1) grid) tiles
+
     else
         tiles
 
-lookDown : Int -> Int -> List GridTile -> List (Tile Int Msg) -> List (Tile Int Msg) 
+
+lookDown : Int -> Int -> List GridTile -> List Tile -> List Tile
 lookDown dimensions index grid tiles =
     if index + dimensions < List.length grid then
         lookAt Tile.Down (LE.getAt (index + dimensions) grid) tiles
+
     else
         tiles
 
 
-lookLeft : Int -> Int -> List GridTile -> List (Tile Int Msg) -> List (Tile Int Msg) 
+lookLeft : Int -> Int -> List GridTile -> List Tile -> List Tile
 lookLeft dimensions index grid tiles =
     if shouldLookLeft dimensions index then
         lookAt Tile.Left (LE.getAt (index - 1) grid) tiles
+
     else
         tiles
 
 
-lookAt : Direction -> Maybe GridTile -> List (Tile Int Msg) -> List (Tile Int Msg)
-lookAt direction maybeTile tiles = 
+lookAt : Direction -> Maybe GridTile -> List Tile -> List Tile
+lookAt direction maybeTile tiles =
     case maybeTile of
         Just gridTile ->
-            case gridTile of 
+            case gridTile of
                 Collapsed tile ->
-                    tiles |> List.filter (WFC.Tile.filter direction tile)
+                    tiles |> List.filter (Tile.filter direction tile)
 
                 Open _ ->
                     tiles
@@ -152,7 +156,7 @@ tileToCollapseIndex time grid =
     grid
         |> List.indexedMap Tuple.pair
         |> List.filter
-            (\(_, tile)->
+            (\( _, tile ) ->
                 case tile of
                     Collapsed _ ->
                         False
@@ -165,31 +169,43 @@ tileToCollapseIndex time grid =
 
 
 getFromProbability : Float -> List a -> Maybe a
-getFromProbability  time list =
+getFromProbability time list =
     list |> LE.getAt (indexFromProbability time list)
+
 
 indexFromProbability : Float -> List a -> Int
 indexFromProbability time list =
     let
-        randomProbability = probability time
-        len = List.length list
-        step = 100 // len
+        randomProbability =
+            probability time
+
+        len =
+            List.length list
+
+        step =
+            100 // len
     in
     randomProbability // step
 
 
-{- Function to get a random number from 0 to 100 based on elapsed time
--}
+
+{- Function to get a random number from 0 to 100 based on elapsed time -}
+
+
 probability : Float -> Int
 probability elapsedTime =
     let
         -- Get the decimal part of the elapsed time
-        decimalPart = elapsedTime - toFloat (floor elapsedTime)
+        decimalPart =
+            elapsedTime - toFloat (floor elapsedTime)
+
         -- Simple hash function to scramble the decimal part
-        hash n = floor (100 * abs (sin (n * 1000)))
+        hash n =
+            floor (100 * abs (sin (n * 1000)))
+
         -- Scale the decimal part to a value between 0 and 100
-        scaledValue = modBy 101 (hash decimalPart)
-           
+        scaledValue =
+            modBy 101 (hash decimalPart)
     in
     scaledValue
 

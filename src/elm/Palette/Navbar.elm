@@ -2,6 +2,7 @@ module Palette.Navbar exposing (..)
 
 import Element exposing (..)
 import Element.Background as Background
+import Element.Border as Border
 import Element.Font as Font
 import Palette.Color exposing (..)
 import Palette.Spacing exposing (..)
@@ -16,12 +17,20 @@ navbar =
         , Background.gradient { angle = degrees 90, steps = [ black, gray24 ] }
         , Font.color white
         ]
-        [ el [] <| text "some logo"
+        [ el [] <|
+            link []
+                { url = "/"
+                , label = text "some logo"
+                }
         , row
-            [ alignRight ]
-            [ link []
-                { url = "/graphicsvg"
-                , label = text "link1"
+            [ alignRight, spacing s1 ]
+            [ link [ Border.color white, Border.width 1, Border.rounded s1, padding s1 ]
+                { url = "/wfc"
+                , label = text "wfc 1.0"
+                }
+            , link [ Border.color white, Border.width 1, Border.rounded s1, padding s1 ]
+                { url = "/wfc-graphicsvg"
+                , label = text "wfc-alpha"
                 }
             ]
         ]

@@ -10,20 +10,31 @@ import Experiments.Raycast.Ray as Ray exposing (Ray)
 
 type alias Vehicle =
     { position : ( Float, Float )
+    , direction : ( Float, Float )
     , rays : List Ray
+    , fov : Int
     }
 
 
 create : Float -> Float -> Vehicle
 create x y =
     { position = ( x, y )
+    , direction = ( 1, 0 )
     , rays = createRays x y
+    , fov = 60
+    }
+
+
+lookAt : ( Float, Float ) -> Vehicle -> Vehicle
+lookAt ( x, y ) vehicle =
+    { vehicle
+        | direction = ( x - Tuple.first vehicle.position, y - Tuple.second vehicle.position )
     }
 
 
 createRays : Float -> Float -> List Ray
 createRays x y =
-    List.range 0 360
+    List.range 0 359
         -- |> List.filter (\angle -> modBy 10 angle == 0)
         |> List.map (toFloat >> turns >> (\n -> n / 360))
         |> List.map (\angle -> Ray.create x y ( cos angle, sin angle ))
@@ -37,8 +48,8 @@ update x y vehicle =
     }
 
 
-draw : List Boundary -> Vehicle -> Canvas.Renderable
-draw walls { position, rays } =
+drawTop : List Boundary -> Vehicle -> Canvas.Renderable
+drawTop walls { position, rays } =
     let
         vehicle =
             Ball.draw (Ball.create (Tuple.first position) (Tuple.second position) 3)
@@ -52,6 +63,18 @@ draw walls { position, rays } =
     Canvas.group [] <|
         vehicle
             :: rays_
+
+
+drawFOV : List Boundary -> Vehicle -> Canvas.Renderable
+drawFOV walls { position, rays } =
+    let
+        rays_ =
+            rays
+                |> List.map (Ray.cast walls)
+                |> List.filterMap identity
+                |> List.map (drawRay position)
+    in
+    Canvas.group [] rays_
 
 
 drawRay : ( Float, Float ) -> ( Float, Float ) -> Canvas.Renderable

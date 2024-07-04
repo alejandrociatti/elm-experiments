@@ -187,7 +187,7 @@ raycast (Model { walls, vehicle }) =
             List.map Boundary.draw walls
 
         vehicle_ =
-            Vehicle.draw walls vehicle
+            Vehicle.drawTop walls vehicle
     in
     vehicle_ :: boundaries_
 

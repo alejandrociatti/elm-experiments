@@ -15,16 +15,18 @@ import Element.Input exposing (button)
 import Experiments.Raycast.Ball as Ball
 import Experiments.Raycast.Boundary as Boundary exposing (Boundary)
 import Experiments.Raycast.Ray as Ray exposing (Ray)
-import Experiments.Raycast.Vehicle as Vehicle exposing (Vehicle)
+import Experiments.Raycast.VehicleD as Vehicle exposing (Vehicle)
 import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Events.Extra.Mouse as Mouse
+import Html.Events.Extra.Wheel as Mouse
 import List.Extra exposing (init)
 import Palette.Color exposing (..)
 import Palette.Navbar exposing (navbar)
 import Palette.Spacing exposing (..)
 import Random
 import Time exposing (posixToMillis)
+import Utils.Canvas exposing (transformAndRender)
 
 
 
@@ -89,6 +91,7 @@ type Msg
     = NoOp
     | AnimationFrame Time.Posix
     | MouseMoved ( Float, Float )
+    | MouseWheelMoved Float
 
 
 
@@ -128,9 +131,8 @@ init_ =
 view : Model -> Element Msg
 view model =
     column
-        [ padding s2, spacing s2, Font.color white ]
-        [ text "Hello, World!"
-        , canvas model
+        [ Element.width fill, spacing s2, Font.color white ]
+        [ canvas model
         ]
 
 
@@ -140,16 +142,16 @@ canvas model =
         canvasSize =
             ( width, height )
     in
-    el [ centerX ] <|
+    el [ paddingXY s8 0, centerX ] <|
         html <|
             Canvas.toHtml
                 canvasSize
-                [ Mouse.onMove (.offsetPos >> MouseMoved) ]
+                [ Mouse.onMove (.offsetPos >> MouseMoved)
+                , Mouse.onWheel (.deltaY >> MouseWheelMoved)
+                ]
             <|
-                (clearCanvas
+                clearCanvas
                     :: raycast model
-                )
-                    ++ [ clearBottomHalf ]
 
 
 clearCanvas : Canvas.Renderable
@@ -162,34 +164,26 @@ clearBottomHalf =
     Canvas.clear ( 0, toFloat height / 2 ) (toFloat width) (toFloat height / 2)
 
 
-transformAndRender : ( Float, Float ) -> ( Float, Float ) -> Canvas.Renderable
-transformAndRender ( x, y ) ( w, h ) =
-    let
-        scaleX =
-            w / toFloat width
-
-        scaleY =
-            h / toFloat height
-    in
-    Canvas.group
-        [ Canvas.transform
-            [ Canvas.translate x y
-            , Canvas.scale scaleX scaleY
-            ]
-        ]
-        []
-
-
 raycast : Model -> List Canvas.Renderable
 raycast (Model { walls, vehicle }) =
     let
         boundaries_ =
             List.map Boundary.draw walls
 
-        vehicle_ =
-            Vehicle.draw walls vehicle
+        topView =
+            Vehicle.drawTop walls vehicle
+
+        frontView =
+            [ clearBottomHalf
+            , transformAndRender
+                ( width, height )
+                ( 0, toFloat height / 2 )
+                ( toFloat width, toFloat height / 2 )
+              <|
+                Vehicle.drawFOV width height walls vehicle
+            ]
     in
-    vehicle_ :: boundaries_
+    topView :: boundaries_ ++ clearBottomHalf :: frontView
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -208,11 +202,18 @@ update msg ((Model model) as model_) =
         MouseMoved ( x, y ) ->
             let
                 vehicle =
-                    Vehicle.update x y model.vehicle
+                    Vehicle.move x y model.vehicle
             in
             ( Model { model | mouse = Just ( x, y ), vehicle = vehicle }
             , Cmd.none
             )
+
+        MouseWheelMoved delta ->
+            let
+                vehicle =
+                    Vehicle.rotate (model.vehicle.direction + round delta) model.vehicle
+            in
+            ( Model { model | vehicle = vehicle }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

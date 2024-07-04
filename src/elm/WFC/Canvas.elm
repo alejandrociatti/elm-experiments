@@ -13,6 +13,7 @@ import Element.Input exposing (button)
 import Html exposing (Html)
 import List.Extra exposing (init)
 import Palette.Color exposing (..)
+import Palette.Navbar exposing (navbar)
 import Palette.Spacing exposing (..)
 import Time exposing (posixToMillis)
 import WFC.Canvas.Grid exposing (collapse)
@@ -162,14 +163,6 @@ view model =
             ]
 
 
-navbar : Element Msg
-navbar =
-    row
-        [ width fill, paddingXY s5 s3, spacing s5, Background.gradient { angle = degrees 90, steps = [ black, gray24 ] } ]
-        [ el [ Font.color white ] <| text "some logo"
-        ]
-
-
 body : List (Element Msg) -> Element Msg
 body elements =
     column
@@ -219,6 +212,10 @@ rightCommands dimensions =
             , plusButton dimensions
             ]
         , button buttonAttrs { onPress = Just Reset, label = el [ centerX ] <| text "Reset" }
+        , link []
+            { url = "/graphicsvg"
+            , label = text "graphicsvg version"
+            }
         ]
 
 

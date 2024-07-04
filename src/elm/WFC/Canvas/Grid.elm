@@ -188,10 +188,10 @@ indexFromProbability time list =
     randomProbability // step
 
 
-
-{- Function to get a random number from 0 to 100 based on elapsed time -}
-
-
+{-| Function to get a random number from 0 to 100
+based on elapsed time
+TODO move this fn to shared module
+-}
 probability : Float -> Int
 probability elapsedTime =
     let

@@ -5,4 +5,8 @@ export default defineConfig({
   root: 'src',
   publicDir: 'src/assets',
   plugins: [elmPlugin()],
+  build: {
+    outDir: '../dist',
+    emptyOutDir: true,
+  }
 });

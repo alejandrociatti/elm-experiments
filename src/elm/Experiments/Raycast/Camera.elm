@@ -1,4 +1,4 @@
-module Experiments.Raycast.VehicleD exposing (Vehicle, create, drawFOV, drawTop, move, rotate)
+module Experiments.Raycast.Camera exposing (Vehicle, changeFov, create, drawFOV, drawTop, move, rotate)
 
 import Canvas as Canvas
 import Canvas.Settings as Canvas
@@ -6,7 +6,7 @@ import Color as Color
 import Experiments.Raycast.Ball as Ball
 import Experiments.Raycast.Boundary exposing (Boundary)
 import Experiments.Raycast.Ray as Ray exposing (Ray)
-import Experiments.Raycast.Vector as Vector
+import Experiments.Raycast.Vector2 as Vector
 import Json.Decode exposing (maybe)
 import Utils.Canvas exposing (transform, translateTo)
 
@@ -23,7 +23,7 @@ create : Float -> Float -> Vehicle
 create x y =
     let
         fov =
-            180
+            60
     in
     { position = ( x, y )
     , direction = 0
@@ -32,10 +32,21 @@ create x y =
     }
 
 
+changeFov : Int -> Vehicle -> Vehicle
+changeFov fov vehicle =
+    update
+        vehicle.direction
+        fov
+        (Tuple.first vehicle.position)
+        (Tuple.second vehicle.position)
+        vehicle
+
+
 rotate : Int -> Vehicle -> Vehicle
 rotate direction vehicle =
     update
         direction
+        vehicle.fov
         (Tuple.first vehicle.position)
         (Tuple.second vehicle.position)
         vehicle
@@ -45,6 +56,7 @@ move : Float -> Float -> Vehicle -> Vehicle
 move x y vehicle =
     update
         vehicle.direction
+        vehicle.fov
         x
         y
         vehicle
@@ -58,12 +70,13 @@ createRays direction fov x y =
         |> List.map (\angle -> Ray.create x y ( cos angle, sin angle ))
 
 
-update : Int -> Float -> Float -> Vehicle -> Vehicle
-update angle x y vehicle =
+update : Int -> Int -> Float -> Float -> Vehicle -> Vehicle
+update angle fov x y vehicle =
     { vehicle
-        | position = ( x, y )
+        | fov = fov
+        , position = ( x, y )
         , direction = angle
-        , rays = createRays angle vehicle.fov x y
+        , rays = createRays angle fov x y
     }
 
 
@@ -91,13 +104,20 @@ drawRay ( x1, y1 ) ( x2, y2 ) =
         ]
 
 
-drawFOV : Int -> Int -> List Boundary -> Vehicle -> Canvas.Renderable
-drawFOV width height walls { position, rays, fov } =
+drawFOV : Bool -> Int -> Int -> List Boundary -> Vehicle -> Canvas.Renderable
+drawFOV projection width height walls { position, rays, fov } =
     let
+        heading =
+            rays
+                |> List.drop (List.length rays // 2)
+                |> List.head
+                |> Maybe.map .direction
+                |> Maybe.withDefault ( 0, 1 )
+
         rays_ =
             rays
-                |> List.map (Ray.cast walls)
-                |> List.indexedMap (drawFovFromRay width height position)
+                |> List.map (\ray -> ( ray, Ray.cast walls ray ))
+                |> List.indexedMap (drawFovFromRay projection heading width height position)
 
         -- i have 1 px per fov, and want them to fill the whole width
         -- so if width = 500 and fov = 60 then scaleX = 500 / 60
@@ -113,13 +133,20 @@ drawFOV width height walls { position, rays, fov } =
         ]
 
 
-drawFovFromRay : Int -> Int -> ( Float, Float ) -> Int -> Maybe ( Float, Float ) -> Canvas.Renderable
-drawFovFromRay width height ( x1, y1 ) index maybeCollisionPoint =
+drawFovFromRay : Bool -> ( Float, Float ) -> Int -> Int -> ( Float, Float ) -> Int -> ( Ray, Maybe ( Float, Float ) ) -> Canvas.Renderable
+drawFovFromRay projection heading width height ( x1, y1 ) index ( { direction }, maybeCollisionPoint ) =
     case maybeCollisionPoint of
         Just ( x2, y2 ) ->
             let
+                angle =
+                    Vector.heading heading - Vector.heading direction
+
                 distance =
-                    Vector.distance ( x1, y1 ) ( x2, y2 )
+                    if projection then
+                        cos angle * Vector.distance ( x1, y1 ) ( x2, y2 )
+
+                    else
+                        Vector.distance ( x1, y1 ) ( x2, y2 )
 
                 wallHeight =
                     (toFloat height / 2 / distance) * toFloat height / 4

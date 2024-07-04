@@ -4,7 +4,7 @@ import Canvas as Canvas
 import Canvas.Settings as Canvas
 import Color as Color
 import Experiments.Raycast.Boundary exposing (Boundary)
-import Experiments.Raycast.Vector as Vector
+import Experiments.Raycast.Vector2 as Vector
 
 
 type alias Ray =
@@ -98,6 +98,47 @@ cast boundaries ray =
 
 cast_ : Ray -> Boundary -> Maybe ( Float, Float )
 cast_ { position, direction } boundary =
+    let
+        ( x1, y1 ) =
+            boundary.start
+
+        ( x2, y2 ) =
+            boundary.end
+
+        ( x3, y3 ) =
+            position
+
+        ( x4, y4 ) =
+            ( x3 + Tuple.first direction, y3 + Tuple.second direction )
+
+        -- cancel if denomiantor is 0
+        denominator =
+            (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4)
+
+        t =
+            ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denominator
+
+        u =
+            -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denominator
+    in
+    if denominator == 0 || t < 0 || t > 1 || u < 0 then
+        Nothing
+
+    else
+        Just ( x1 + t * (x2 - x1), y1 + t * (y2 - y1) )
+
+
+cameraCast : ( Float, Float ) -> List Boundary -> Ray -> Maybe ( Float, Float )
+cameraCast heading boundaries ray =
+    boundaries
+        |> List.map (cameraCast_ heading ray)
+        |> List.filterMap identity
+        |> List.sortBy (Vector.distance ray.position)
+        |> List.head
+
+
+cameraCast_ : ( Float, Float ) -> Ray -> Boundary -> Maybe ( Float, Float )
+cameraCast_ heading { position, direction } boundary =
     let
         ( x1, y1 ) =
             boundary.start

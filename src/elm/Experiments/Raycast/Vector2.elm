@@ -1,4 +1,4 @@
-module Experiments.Raycast.Vector exposing (distance, normalize)
+module Experiments.Raycast.Vector2 exposing (distance, heading, normalize)
 
 
 normalize : ( Float, Float ) -> ( Float, Float )
@@ -18,3 +18,8 @@ normalize ( x, y ) =
 distance : ( Float, Float ) -> ( Float, Float ) -> Float
 distance ( x1, y1 ) ( x2, y2 ) =
     sqrt ((x2 - x1) ^ 2 + (y2 - y1) ^ 2)
+
+
+heading : ( Float, Float ) -> Float
+heading ( x, y ) =
+    atan2 y x

@@ -11,22 +11,25 @@ import Element.Background as Background
 import Element.Border as Border exposing (rounded)
 import Element.Events exposing (onMouseMove)
 import Element.Font as Font
-import Element.Input exposing (button)
+import Element.Input as Input exposing (button)
 import Experiments.Raycast.Ball as Ball
 import Experiments.Raycast.Boundary as Boundary exposing (Boundary)
+import Experiments.Raycast.Camera as Vehicle exposing (Vehicle)
 import Experiments.Raycast.Ray as Ray exposing (Ray)
-import Experiments.Raycast.VehicleD as Vehicle exposing (Vehicle)
 import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Events.Extra.Mouse as Mouse
 import Html.Events.Extra.Wheel as Mouse
 import List.Extra exposing (init)
-import Palette.Color exposing (..)
+import Palette.Border as Border
+import Palette.Color as Color exposing (..)
 import Palette.Navbar exposing (navbar)
 import Palette.Spacing exposing (..)
 import Random
 import Time exposing (posixToMillis)
 import Utils.Canvas exposing (transformAndRender)
+import Utils.Keyboard as Keyboard
+import Utils.Random exposing (probabilityFromTime)
 
 
 
@@ -84,6 +87,7 @@ type Model
         , walls : List Boundary
         , vehicle : Vehicle
         , mouse : Maybe ( Float, Float )
+        , projection : Bool
         }
 
 
@@ -92,6 +96,9 @@ type Msg
     | AnimationFrame Time.Posix
     | MouseMoved ( Float, Float )
     | MouseWheelMoved Float
+    | ChangeFov Int
+    | RandomizeBounds
+    | ToggleProjection
 
 
 
@@ -123,6 +130,7 @@ init_ =
                 |> List.map (Boundary.moveBy 150 50)
         , vehicle = Vehicle.create 100 100
         , mouse = Nothing
+        , projection = False
         }
     , Cmd.none
     )
@@ -137,12 +145,17 @@ view model =
 
 
 canvas : Model -> Element Msg
-canvas model =
+canvas ((Model model_) as model) =
     let
         canvasSize =
             ( width, height )
     in
-    el [ paddingXY s8 0, centerX ] <|
+    el
+        [ paddingXY s8 0
+        , centerX
+        , onLeft <| leftExplanationAndSettings model_.projection model_.vehicle.fov
+        ]
+    <|
         html <|
             Canvas.toHtml
                 canvasSize
@@ -165,7 +178,7 @@ clearBottomHalf =
 
 
 raycast : Model -> List Canvas.Renderable
-raycast (Model { walls, vehicle }) =
+raycast (Model { walls, vehicle, projection }) =
     let
         boundaries_ =
             List.map Boundary.draw walls
@@ -180,7 +193,7 @@ raycast (Model { walls, vehicle }) =
                 ( 0, toFloat height / 2 )
                 ( toFloat width, toFloat height / 2 )
               <|
-                Vehicle.drawFOV width height walls vehicle
+                Vehicle.drawFOV projection width height walls vehicle
             ]
     in
     topView :: boundaries_ ++ clearBottomHalf :: frontView
@@ -215,7 +228,167 @@ update msg ((Model model) as model_) =
             in
             ( Model { model | vehicle = vehicle }, Cmd.none )
 
+        ChangeFov fov ->
+            let
+                vehicle_ =
+                    Vehicle.changeFov fov model.vehicle
+            in
+            ( Model { model | vehicle = vehicle_ }, Cmd.none )
+
+        RandomizeBounds ->
+            let
+                probability =
+                    probabilityFromTime model.time
+
+                walls_ =
+                    List.range 0 (5 + probability // 5)
+                        |> List.map
+                            (\n ->
+                                let
+                                    x1 =
+                                        probabilityFromTime (model.time + toFloat n / 100)
+                                            |> toFloat
+                                            |> (*) (toFloat width / 100)
+
+                                    x2 =
+                                        probabilityFromTime (model.time + toFloat n / 200)
+                                            |> toFloat
+                                            |> (*) (toFloat width / 100)
+
+                                    y1 =
+                                        probabilityFromTime (model.time + toFloat n / 300)
+                                            |> toFloat
+                                            |> (*) (toFloat height / 100)
+
+                                    y2 =
+                                        probabilityFromTime (model.time + toFloat n / 400)
+                                            |> toFloat
+                                            |> (*) (toFloat height / 100)
+                                in
+                                Boundary.create x1 y1 x2 y2
+                            )
+            in
+            ( Model { model | walls = walls_ }, Cmd.none )
+
+        ToggleProjection ->
+            ( Model { model | projection = not model.projection }, Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     onAnimationFrame AnimationFrame
+
+
+leftExplanationAndSettings : Bool -> Int -> Element Msg
+leftExplanationAndSettings projection fov =
+    column
+        [ Element.width (fill |> minimum s16 |> maximum 300), padding s2, spacing s2 ]
+        [ column
+            [ Font.color white
+            , Font.size s2_5
+            , spacing s1
+            ]
+            [ paragraph [ Font.bold, Font.size s3 ] [ text "random map with raycast representation (top & pov)" ]
+            , bulletedItem "move mouse to move camera"
+            , bulletedItem "scroll to rotate camera"
+            , bulletedItem "change fov with slider"
+            ]
+        , Input.slider
+            [ Element.height <| px 30
+            , behindContent
+                (el
+                    [ Element.width Element.fill
+                    , Element.height (Element.px 2)
+                    , centerY
+                    , Background.color Color.gray
+                    , Border.rounded 2
+                    ]
+                    Element.none
+                )
+            ]
+            { onChange = round >> ChangeFov
+            , label =
+                Input.labelAbove []
+                    (text <| "Field Of View (" ++ String.fromInt fov ++ "°)")
+            , min = 45
+            , max = 360
+            , step = Just 5
+            , value = toFloat fov
+            , thumb =
+                Input.defaultThumb
+            }
+        , Input.button
+            [ Element.width (fill |> minimum s16 |> maximum 300)
+            , Element.height (px 30)
+            , paddingXY s2 s4
+            , Font.size s2
+            , Font.color white
+            , Background.color Color.gray
+            , Border.rounded 2
+            ]
+            { onPress = Just <| ChangeFov 60
+            , label = text "reset field-of-view"
+            }
+        , Input.button
+            [ Element.width (fill |> minimum s16 |> maximum 300)
+            , Element.height (px 30)
+            , paddingXY s2 s4
+            , Font.size s2
+            , Font.color white
+            , Background.color Color.gray
+            , Border.rounded 2
+            ]
+            { onPress = Just <| RandomizeBounds
+            , label = text "randomize bounds"
+            }
+        , toggle projection
+        ]
+
+
+bulletedItem : String -> Element msg
+bulletedItem item =
+    row [ spacing s1, Font.size s2 ]
+        [ el [ Font.bold ] (text "•")
+        , el [] (text item)
+        ]
+
+
+toggle projection =
+    let
+        attrs isCurrent =
+            if isCurrent then
+                [ Font.color white
+                , Background.color Color.gray
+                ]
+
+            else
+                [ Font.color Color.gray
+                , Background.color black
+                ]
+    in
+    row []
+        [ Input.button
+            ([ Element.width fill
+             , Element.height (px 30)
+             , paddingXY s2 s4
+             , Font.size s2
+             , Border.roundLeft 2
+             ]
+                ++ attrs (not projection)
+            )
+            { onPress = Just <| ToggleProjection
+            , label = text "euclidean dist."
+            }
+        , Input.button
+            ([ Element.width fill
+             , Element.height (px 30)
+             , paddingXY s2 s4
+             , Font.size s2
+             , Border.roundLeft 2
+             ]
+                ++ attrs projection
+            )
+            { onPress = Just <| ToggleProjection
+            , label = text "projection dist."
+            }
+        ]

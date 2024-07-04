@@ -24,7 +24,7 @@ create x y =
 createRays : Float -> Float -> List Ray
 createRays x y =
     List.range 0 360
-        |> List.filter (\angle -> modBy 10 angle == 0)
+        -- |> List.filter (\angle -> modBy 10 angle == 0)
         |> List.map (toFloat >> turns >> (\n -> n / 360))
         |> List.map (\angle -> Ray.create x y ( cos angle, sin angle ))
 
@@ -56,6 +56,6 @@ draw walls { position, rays } =
 
 drawRay : ( Float, Float ) -> ( Float, Float ) -> Canvas.Renderable
 drawRay ( x1, y1 ) ( x2, y2 ) =
-    Canvas.shapes [ Canvas.stroke Color.white ]
+    Canvas.shapes [ Canvas.stroke <| Color.rgba 1 1 1 0.2 ]
         [ Canvas.path ( x1, y1 ) [ Canvas.lineTo ( x2, y2 ) ]
         ]

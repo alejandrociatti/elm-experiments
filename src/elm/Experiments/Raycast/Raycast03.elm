@@ -1,4 +1,4 @@
-module Experiments.Raycast exposing (Model, Module, Msg, init)
+module Experiments.Raycast.Raycast03 exposing (Model, Module, Msg, init)
 
 import Browser
 import Browser.Events exposing (onAnimationFrame)

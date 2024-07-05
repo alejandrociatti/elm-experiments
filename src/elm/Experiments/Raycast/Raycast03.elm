@@ -1,29 +1,17 @@
 module Experiments.Raycast.Raycast03 exposing (Model, Module, Msg, init)
 
-import Browser
 import Browser.Events exposing (onAnimationFrame)
 import Canvas as Canvas
 import Canvas.Settings as Canvas
 import Canvas.Settings.Advanced as Canvas
 import Canvas.Texture as Canvas
 import Element exposing (..)
-import Element.Background as Background
-import Element.Border as Border exposing (rounded)
-import Element.Events exposing (onMouseMove)
 import Element.Font as Font
-import Element.Input exposing (button)
-import Experiments.Raycast.Ball as Ball
 import Experiments.Raycast.Boundary as Boundary exposing (Boundary)
-import Experiments.Raycast.Ray as Ray exposing (Ray)
 import Experiments.Raycast.Vehicle as Vehicle exposing (Vehicle)
-import Html exposing (Html)
-import Html.Attributes as HA
 import Html.Events.Extra.Mouse as Mouse
-import List.Extra exposing (init)
 import Palette.Color exposing (..)
-import Palette.Navbar exposing (navbar)
 import Palette.Spacing exposing (..)
-import Random
 import Time exposing (posixToMillis)
 
 
@@ -160,24 +148,6 @@ clearCanvas =
 clearBottomHalf : Canvas.Renderable
 clearBottomHalf =
     Canvas.clear ( 0, toFloat height / 2 ) (toFloat width) (toFloat height / 2)
-
-
-transformAndRender : ( Float, Float ) -> ( Float, Float ) -> Canvas.Renderable
-transformAndRender ( x, y ) ( w, h ) =
-    let
-        scaleX =
-            w / toFloat width
-
-        scaleY =
-            h / toFloat height
-    in
-    Canvas.group
-        [ Canvas.transform
-            [ Canvas.translate x y
-            , Canvas.scale scaleX scaleY
-            ]
-        ]
-        []
 
 
 raycast : Model -> List Canvas.Renderable

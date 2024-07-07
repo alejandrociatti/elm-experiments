@@ -1,4 +1,4 @@
-module Experiments.Raycast.Vector2 exposing (distance, heading, normalize)
+module Utils.Vector2 exposing (add, distance, fromInt, heading, isZero, normalize, toInt)
 
 
 normalize : ( Float, Float ) -> ( Float, Float )
@@ -15,6 +15,11 @@ normalize ( x, y ) =
         ( x / magnitude, y / magnitude )
 
 
+isZero : ( number, number ) -> Bool
+isZero ( x, y ) =
+    x == 0 && y == 0
+
+
 distance : ( Float, Float ) -> ( Float, Float ) -> Float
 distance ( x1, y1 ) ( x2, y2 ) =
     sqrt ((x2 - x1) ^ 2 + (y2 - y1) ^ 2)
@@ -23,3 +28,18 @@ distance ( x1, y1 ) ( x2, y2 ) =
 heading : ( Float, Float ) -> Float
 heading ( x, y ) =
     atan2 y x
+
+
+fromInt : ( Int, Int ) -> ( Float, Float )
+fromInt ( x, y ) =
+    ( toFloat x, toFloat y )
+
+
+toInt : ( Float, Float ) -> ( Int, Int )
+toInt ( x, y ) =
+    ( round x, round y )
+
+
+add : ( number, number ) -> ( number, number ) -> ( number, number )
+add ( x1, y1 ) ( x2, y2 ) =
+    ( x1 + x2, y1 + y2 )

@@ -21,3 +21,21 @@ probabilityFromTime elapsedTime =
             modBy 101 (hash decimalPart)
     in
     scaledValue
+
+
+randomBetween : Int -> Int -> Float -> Int
+randomBetween min max elapsedTime =
+    let
+        scaledValue =
+            probabilityFromTime elapsedTime
+
+        range =
+            max - min
+
+        scaled =
+            toFloat scaledValue / 100
+
+        value =
+            min + round (scaled * toFloat range)
+    in
+    value

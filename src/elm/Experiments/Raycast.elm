@@ -1,6 +1,5 @@
 module Experiments.Raycast exposing (Model, Module, Msg, init)
 
-import Browser
 import Browser.Events exposing (onAnimationFrame)
 import Canvas as Canvas
 import Canvas.Settings as Canvas
@@ -12,12 +11,10 @@ import Element.Border as Border exposing (rounded)
 import Element.Events exposing (onMouseMove)
 import Element.Font as Font
 import Element.Input as Input exposing (button)
-import Experiments.Raycast.Ball as Ball
 import Experiments.Raycast.Boundary as Boundary exposing (Boundary)
 import Experiments.Raycast.Camera as Vehicle exposing (Vehicle)
 import Experiments.Raycast.Ray as Ray exposing (Ray)
 import Html exposing (Html)
-import Html.Attributes as HA
 import Html.Events.Extra.Mouse as Mouse
 import Html.Events.Extra.Wheel as Mouse
 import List.Extra exposing (init)
@@ -25,10 +22,8 @@ import Palette.Border as Border
 import Palette.Color as Color exposing (..)
 import Palette.Navbar exposing (navbar)
 import Palette.Spacing exposing (..)
-import Random
 import Time exposing (posixToMillis)
 import Utils.Canvas exposing (transformAndRender)
-import Utils.Keyboard as Keyboard
 import Utils.Random exposing (probabilityFromTime)
 
 
@@ -46,7 +41,7 @@ type alias Module msg model =
 
 init :
     { toModel : model -> Model -> model
-    , fromModel : model -> Model
+    , fromModel : model -> Maybe Model
     , toMsg : Msg -> msg
     }
     -> Module msg model
@@ -54,26 +49,41 @@ init { toModel, fromModel, toMsg } =
     let
         mapView : model -> Element msg
         mapView model =
-            view (fromModel model)
-                |> Element.map toMsg
+            fromModel model
+                |> Maybe.map (Element.map toMsg << view)
+                |> Maybe.withDefault Element.none
+
+        unmapUpdate : model -> (Model, Cmd Msg) -> (model, Cmd msg)
+        unmapUpdate userModel (innerModel, innerCmd) =
+            ( toModel userModel innerModel 
+            , Cmd.map toMsg innerCmd
+            )
+
+        mapUpdate_ : Msg -> model -> Model -> ( model, Cmd msg )
+        mapUpdate_ msg userModel innerModel =
+            update msg innerModel  
+                |> unmapUpdate userModel 
 
         mapUpdate : Msg -> model -> ( model, Cmd msg )
         mapUpdate msg model =
-            update msg (fromModel model)
-                |> (\( formModel, formCmd ) ->
-                        ( toModel model formModel
-                        , Cmd.map toMsg formCmd
-                        )
-                   )
+            case fromModel model of
+                Just model_ ->
+                    mapUpdate_ msg model model_
+
+                Nothing ->
+                    ( model, Cmd.none )
+
+        mapSubscriptions : model -> Sub msg
+        mapSubscriptions model =
+            fromModel model
+                |> Maybe.map (\model_ -> subscriptions model_ |> Sub.map toMsg)
+                |> Maybe.withDefault Sub.none
     in
     { view = mapView
     , update = mapUpdate
     , init =
         Tuple.mapSecond (Cmd.map toMsg) init_
-    , subscriptions =
-        \model ->
-            subscriptions (fromModel model)
-                |> Sub.map toMsg
+    , subscriptions = mapSubscriptions
     }
 
 

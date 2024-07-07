@@ -1,14 +1,9 @@
 module Main exposing (main)
 
 import Browser
-import Canvas as Canvas
-import Canvas.Settings as Canvas
-import Canvas.Settings.Advanced as Canvas
-import Canvas.Texture as Canvas
-import Color
 import Element exposing (..)
-import Element.Font as Font
 import Experiments.Raycast as Raycast
+import Experiments.Snake as Snake
 import Html exposing (Html)
 import Palette.Navbar exposing (navbar)
 
@@ -30,14 +25,18 @@ type alias Model =
 type Msg
     = NoOp
     | GotRaycastMsg Raycast.Msg
+    | GotSnakeMsg Snake.Msg
+    | ChangeRoute Route
 
 
 type Route
     = Raycast Raycast.Model
+    | Snake Snake.Model
 
 
 init flags =
-    ( { route = Raycast <| Tuple.first raycastModule.init }
+    -- ( { route = Raycast <| Tuple.first raycastModule.init }
+    ( { route = Snake <| Tuple.first snakeModule.init }
     , Cmd.none
     )
 
@@ -54,8 +53,27 @@ raycastModule =
             \model ->
                 case model.route of
                     Raycast rcModel ->
-                        rcModel
+                        Just rcModel
+
+                    _ ->
+                        Nothing
         , toMsg = GotRaycastMsg
+        }
+
+
+snakeModule : Snake.Module Msg Model
+snakeModule =
+    Snake.init
+        { toModel = \model snakeModel -> { model | route = Snake snakeModel }
+        , fromModel =
+            \model ->
+                case model.route of
+                    Snake snakeModel ->
+                        Just snakeModel
+
+                    _ ->
+                        Nothing
+        , toMsg = GotSnakeMsg
         }
 
 
@@ -74,6 +92,20 @@ update msg model =
                 Raycast rcModel ->
                     raycastModule.update rcMsg model
 
+                _ ->
+                    ( model, Cmd.none )
+
+        GotSnakeMsg snakeMsg ->
+            case model.route of
+                Snake snakeModel ->
+                    snakeModule.update snakeMsg model
+
+                _ ->
+                    ( model, Cmd.none )
+
+        ChangeRoute route ->
+            ( { model | route = route }, Cmd.none )
+
 
 
 -- VIEW
@@ -86,11 +118,29 @@ view model =
     <|
         column
             [ width fill ]
-            [ navbar
-            , raycastModule.view model
+            [ navbarWithRoutes model.route
+            , case model.route of
+                Raycast raycastModel ->
+                    raycastModule.view model
+
+                Snake snakeModel ->
+                    snakeModule.view model
             ]
+
+
+navbarWithRoutes : Route -> Element Msg
+navbarWithRoutes route =
+    case route of
+        Raycast _ ->
+            navbar <| Just (ChangeRoute (Snake <| Tuple.first snakeModule.init))
+
+        Snake _ ->
+            navbar <| Just (ChangeRoute (Raycast <| Tuple.first raycastModule.init))
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    raycastModule.subscriptions model
+    Sub.batch
+        [ raycastModule.subscriptions model
+        , snakeModule.subscriptions model
+        ]

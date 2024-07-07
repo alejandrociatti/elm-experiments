@@ -23,6 +23,16 @@ transformAndRender ( width, height ) ( x, y ) ( w, h ) renderable =
         [ renderable ]
 
 
+scale : Float -> Float -> Canvas.Renderable -> Canvas.Renderable
+scale scaleX scaleY renderable =
+    Canvas.group
+        [ Canvas.transform
+            [ Canvas.scale scaleX scaleY
+            ]
+        ]
+        [ renderable ]
+
+
 transform : ( Int, Int ) -> ( Float, Float ) -> ( Float, Float ) -> List Canvas.Setting
 transform ( width, height ) ( x, y ) ( w, h ) =
     let

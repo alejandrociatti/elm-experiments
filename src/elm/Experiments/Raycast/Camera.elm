@@ -6,9 +6,9 @@ import Color as Color
 import Experiments.Raycast.Ball as Ball
 import Experiments.Raycast.Boundary exposing (Boundary)
 import Experiments.Raycast.Ray as Ray exposing (Ray)
-import Experiments.Raycast.Vector2 as Vector
 import Json.Decode exposing (maybe)
 import Utils.Canvas exposing (transform, translateTo)
+import Utils.Vector2 as Vector
 
 
 type alias Vehicle =

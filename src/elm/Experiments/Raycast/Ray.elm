@@ -4,7 +4,7 @@ import Canvas as Canvas
 import Canvas.Settings as Canvas
 import Color as Color
 import Experiments.Raycast.Boundary exposing (Boundary)
-import Experiments.Raycast.Vector2 as Vector
+import Utils.Vector2 as Vector
 
 
 type alias Ray =

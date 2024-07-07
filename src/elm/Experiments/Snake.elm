@@ -9,6 +9,7 @@ import Task exposing (Task)
 import Utils.Canvas as CU
 import Utils.Keyboard as Keyboard exposing (GetKeyState)
 import Utils.Layout as Layout
+import Utils.Number exposing (constrain)
 import Utils.Random as Random
 import Utils.TickWithKeys as TickWithKeys
 import Utils.Vector2 as V
@@ -166,21 +167,91 @@ update msg model =
             , cmd
             )
 
-        Tick time ( keyf, arrows, wasd ) ->
-            let
-                ( eat, newSnake ) =
-                    Player.eat
-                        (Player.update (V.toInt wasd) model.snake)
-                        model.food
+        Tick time ( keyf, arrows, wasd_ ) ->
+            if keyf (Keyboard.Key "r") == Keyboard.Down then
+                init_
 
-                newFood =
-                    if eat then
-                        ( Random.randomBetween 0 29 time, Random.randomBetween 0 29 (time + 0.001) )
+            else
+                let
+                    wasd =
+                        blockWasd
+                            model.snake.direction
+                            (V.toInt wasd_)
 
-                    else
-                        model.food
-            in
-            ( { model | snake = newSnake, food = newFood }, Cmd.none )
+                    ( eat, newSnake ) =
+                        Player.eat
+                            (Player.update wasd model.snake)
+                            model.food
+
+                    skipFrames =
+                        if eat && modBy 3 model.snake.size == 0 then
+                            constrain 10 99 (model.skipFrames - 1)
+
+                        else
+                            model.skipFrames
+
+                    newFood =
+                        if eat then
+                            ( Random.randomBetween 0 29 time, Random.randomBetween 0 29 (time + 0.001) )
+
+                        else
+                            model.food
+                in
+                ( { model | snake = newSnake, food = newFood, skipFrames = skipFrames }, Cmd.none )
+
+
+blockWasd : ( Int, Int ) -> ( Int, Int ) -> ( Int, Int )
+blockWasd ( oldX, oldY ) ( newX, newY ) =
+    let
+        newDirection =
+            if newX /= 0 then
+                if newX > 0 then
+                    ( 1, 0 )
+
+                else
+                    ( -1, 0 )
+
+            else if newY /= 0 then
+                if newY > 0 then
+                    ( 0, 1 )
+
+                else
+                    ( 0, -1 )
+
+            else
+                ( 0, 0 )
+
+        finalDirection =
+            if newDirection == ( 0, 0 ) then
+                ( oldX, oldY )
+
+            else if isOppositeDirection ( oldX, oldY ) newDirection then
+                ( oldX, oldY )
+
+            else
+                newDirection
+    in
+    finalDirection
+
+
+isOppositeDirection : ( number, number ) -> ( number, number ) -> Bool
+isOppositeDirection ( oldX, oldY ) ( newX, newY ) =
+    (oldX /= 0 && newX == -oldX) || (oldY /= 0 && newY == -oldY)
+
+
+
+-- if newX /= 0 then
+--     if newX > 0 then
+--         ( 1, 0 )
+--     else
+--         ( -1, 0 )
+-- else if newY /= 0 then
+--     if newY > 0 then
+--         ( 0, 1 )
+--     else
+--         ( 0, -1 )
+-- else
+--     ( 0, 0 )
 
 
 subscriptions : Model -> Sub Msg

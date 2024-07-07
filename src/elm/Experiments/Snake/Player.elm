@@ -1,24 +1,29 @@
 module Experiments.Snake.Player exposing (..)
 
+import Bitwise exposing (and)
 import Canvas as Canvas
 import Canvas.Settings as Canvas
 import Color as Color
-import Utils.Number exposing (constrain)
+import Utils.Number exposing (constrain, constrainReverse)
 import Utils.Vector2 as V
 
 
 type alias Snake =
     { direction : ( Int, Int )
     , body : List ( Int, Int )
+    , size : Int
     , speed : Int
+    , living : Bool
     }
 
 
 init : Snake
 init =
     { direction = ( 0, 0 )
-    , body = [ ( 8, 8 ) ]
+    , body = [ ( 15, 15 ) ]
+    , size = 1
     , speed = 1
+    , living = True
     }
 
 
@@ -35,14 +40,42 @@ update direction snake =
         moveBody d =
             V.add newDirection d
                 |> Tuple.mapBoth
-                    (\x -> constrain 0 29 x)
-                    (\y -> constrain 0 29 y)
+                    (\x -> constrainReverse 0 29 x)
+                    (\y -> constrainReverse 0 29 y)
+
+        movedHead : Maybe ( Int, Int )
+        movedHead =
+            snake.body
+                |> List.head
+                |> Maybe.map moveBody
+
+        movedBody : List ( Int, Int )
+        movedBody =
+            snake.body
+                |> List.take (snake.size - 1)
+
+        tail : List ( Int, Int )
+        tail =
+            snake.body
+                |> List.drop 1
+
+        living =
+            snake.living
+                && (movedHead
+                        |> Maybe.map (\head -> not (List.member head tail))
+                        |> Maybe.withDefault True
+                   )
 
         newBody =
-            snake.body
-                |> List.map moveBody
+            movedHead
+                |> Maybe.map (\head -> head :: movedBody)
+                |> Maybe.withDefault snake.body
     in
-    { snake | direction = newDirection, body = newBody }
+    if living then
+        { snake | direction = newDirection, body = newBody }
+
+    else
+        { snake | living = living }
 
 
 render : Snake -> Canvas.Renderable
@@ -50,8 +83,15 @@ render snake =
     let
         bodyRenderable position =
             Canvas.rect position 1 1
+
+        attrs =
+            if snake.living then
+                [ Canvas.fill Color.white ]
+
+            else
+                [ Canvas.fill Color.red ]
     in
-    Canvas.shapes [ Canvas.fill Color.white ] <|
+    Canvas.shapes attrs <|
         List.map (bodyRenderable << V.fromInt) snake.body
 
 
@@ -66,7 +106,7 @@ eat snake food =
         |> Maybe.map
             (\head ->
                 if head == food then
-                    ( True, snake )
+                    ( True, { snake | size = snake.size + 1 } )
 
                 else
                     ( False, snake )

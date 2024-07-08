@@ -27,18 +27,16 @@ init =
     }
 
 
-update : ( Int, Int ) -> Snake -> Snake
-update direction snake =
+logicUpdate : ( Int, Int ) -> Snake -> Snake
+logicUpdate direction snake =
+    { snake | direction = direction }
+
+
+update : Snake -> Snake
+update snake =
     let
-        newDirection =
-            if V.isZero direction then
-                snake.direction
-
-            else
-                direction
-
         moveBody d =
-            V.add newDirection d
+            V.add snake.direction d
                 |> Tuple.mapBoth
                     (\x -> constrainReverse 0 29 x)
                     (\y -> constrainReverse 0 29 y)
@@ -72,7 +70,7 @@ update direction snake =
                 |> Maybe.withDefault snake.body
     in
     if living then
-        { snake | direction = newDirection, body = newBody }
+        { snake | body = newBody }
 
     else
         { snake | living = living }

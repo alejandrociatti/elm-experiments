@@ -30,7 +30,7 @@ init =
 
 toTickMsg : Model -> (Float -> GetKeyState -> msg) -> msg
 toTickMsg model msg =
-    msg model.time.last model.state
+    msg model.time.elapsed model.state
 
 
 getKeyState : Keyboard.Model -> GetKeyState

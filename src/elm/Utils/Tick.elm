@@ -11,14 +11,14 @@ type Msg
 
 type alias Model =
     { initial : Time.Posix
-    , last : Float
+    , elapsed : Float
     }
 
 
 init : Model
 init =
     { initial = Time.millisToPosix 0
-    , last = 0
+    , elapsed = 0
     }
 
 
@@ -33,7 +33,7 @@ update msg model =
                 timeInSeconds =
                     subtractTimeSeconds t model.initial
             in
-            { model | last = timeInSeconds }
+            { model | elapsed = timeInSeconds }
 
 
 subscription : Sub Msg

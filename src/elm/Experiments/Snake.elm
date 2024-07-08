@@ -3,8 +3,11 @@ module Experiments.Snake exposing (Model, Module, Msg, init)
 import Canvas as Canvas
 import Canvas.Settings as Canvas
 import Color as Color
-import Element exposing (Element)
+import Element exposing (..)
+import Element.Font as Font exposing (Font)
 import Experiments.Snake.Player as Player exposing (Snake)
+import Palette.Color exposing (white)
+import Palette.Spacing exposing (s2)
 import Task exposing (Task)
 import Utils.Canvas as CU
 import Utils.Keyboard as Keyboard exposing (GetKeyState)
@@ -91,8 +94,7 @@ type alias Model =
 
 type Msg
     = NoOp
-    | Tick Float GetKeyState
-    | GotTKMsg TickWithKeys.Msg
+    | Tick TickWithKeys.Msg
 
 
 
@@ -117,23 +119,44 @@ view model =
     Layout.view
         { width = 600
         , height = 600
-        , onLeft = Nothing
-        , onRight = Nothing
+        , onLeft = Just <| leftExplanation
+        , onRight = Just <| score model.score
         }
         (game model)
 
 
+leftExplanation : Element Msg
+leftExplanation =
+    column
+        [ width <| px 300, padding s2 ]
+        [ paragraph
+            [ Font.color white ]
+            [ text "Simple snake game, press r to reset after you die, "
+            , text "move with WASD"
+            ]
+        ]
+
+
+score : Int -> Element Msg
+score s =
+    column
+        [ width <| px 300, padding s2 ]
+        [ paragraph
+            [ Font.color white ]
+            [ text "Score: "
+            , text <| String.fromInt s
+            ]
+        ]
+
+
 game : Model -> List Canvas.Renderable
-game { snake, food, score } =
+game { snake, food } =
     let
         snakeRenderable =
             Player.render snake
 
         foodRenderable =
             Canvas.shapes [ Canvas.fill Color.white ] [ Canvas.rect (V.fromInt food) 1 1 ]
-
-        scoreRenderable =
-            Canvas.text [] ( 0, 0 ) (String.fromInt score)
     in
     [ CU.scale 20 20 <|
         Canvas.group [] [ snakeRenderable, foodRenderable ]
@@ -146,58 +169,68 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
-        GotTKMsg tkMsg ->
+        Tick tkMsg ->
             let
                 newTK =
                     TickWithKeys.update tkMsg model.tickAndKeys
 
-                newFrame =
-                    model.frame + 1
-
-                cmd =
-                    if modBy (model.skipFrames + 1) newFrame == 0 then
-                        Task.perform
-                            (always <| TickWithKeys.toTickMsg newTK Tick)
-                            (Task.succeed ())
-
-                    else
-                        Cmd.none
+                newModel =
+                    { model | tickAndKeys = newTK }
             in
-            ( { model | tickAndKeys = newTK, frame = newFrame }
-            , cmd
-            )
+            logicUpdate newTK.time.elapsed newTK.state newModel
 
-        Tick time ( keyf, arrows, wasd_ ) ->
-            if keyf (Keyboard.Key "r") == Keyboard.Down then
-                init_
+
+logicUpdate : Float -> GetKeyState -> Model -> ( Model, Cmd Msg )
+logicUpdate time (( keyf, _, wasd_ ) as gks) model =
+    if keyf (Keyboard.Key "r") == Keyboard.Down then
+        init_
+
+    else
+        let
+            wasd =
+                blockWasd
+                    model.snake.direction
+                    (V.toInt wasd_)
+
+            newSnake =
+                Player.logicUpdate wasd model.snake
+
+            newFrame =
+                model.frame + 1
+
+            newModel =
+                { model | snake = newSnake, frame = newFrame }
+        in
+        if modBy (model.skipFrames + 1) newFrame == 0 then
+            gameUpdate time gks newModel
+
+        else
+            ( newModel, Cmd.none )
+
+
+gameUpdate : Float -> GetKeyState -> Model -> ( Model, Cmd Msg )
+gameUpdate time ( keyf, arrows, wasd ) model =
+    let
+        ( eat, newSnake ) =
+            Player.eat
+                (Player.update model.snake)
+                model.food
+
+        ( newFood, newScore ) =
+            if eat then
+                ( ( Random.randomBetween 0 29 time, Random.randomBetween 0 29 (time + 0.001) ), model.score + 5 )
 
             else
-                let
-                    wasd =
-                        blockWasd
-                            model.snake.direction
-                            (V.toInt wasd_)
+                ( model.food, model.score )
 
-                    ( eat, newSnake ) =
-                        Player.eat
-                            (Player.update wasd model.snake)
-                            model.food
+        skipFrames =
+            if eat && modBy 3 model.snake.size == 0 then
+                constrain 10 99 (model.skipFrames - 1)
 
-                    skipFrames =
-                        if eat && modBy 3 model.snake.size == 0 then
-                            constrain 10 99 (model.skipFrames - 1)
-
-                        else
-                            model.skipFrames
-
-                    newFood =
-                        if eat then
-                            ( Random.randomBetween 0 29 time, Random.randomBetween 0 29 (time + 0.001) )
-
-                        else
-                            model.food
-                in
-                ( { model | snake = newSnake, food = newFood, skipFrames = skipFrames }, Cmd.none )
+            else
+                model.skipFrames
+    in
+    ( { model | snake = newSnake, food = newFood, skipFrames = skipFrames, score = newScore }, Cmd.none )
 
 
 blockWasd : ( Int, Int ) -> ( Int, Int ) -> ( Int, Int )
@@ -257,5 +290,5 @@ isOppositeDirection ( oldX, oldY ) ( newX, newY ) =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     TickWithKeys.subscriptions
-        |> List.map (Sub.map GotTKMsg)
+        |> List.map (Sub.map Tick)
         |> Sub.batch

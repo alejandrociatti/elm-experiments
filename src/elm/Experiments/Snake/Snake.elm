@@ -1,35 +1,105 @@
-module Experiments.Snake.Player exposing (..)
+module Experiments.Snake.Snake exposing (..)
 
 import Bitwise exposing (and)
 import Canvas as Canvas
-import Canvas.Settings as Canvas
+import Utils.Canvas as CU
+import Palette.Color exposing (..) 
 import Color as Color
+import Canvas.Settings as Canvas
 import Utils.Number exposing (constrain, constrainReverse)
 import Utils.Vector2 as V
+import Html exposing (a)
 
 
 type alias Snake =
-    { direction : ( Int, Int )
-    , body : List ( Int, Int )
+    { body : List ( Int, Int )
+    , direction : ( Int, Int )
+    , living : Bool
     , size : Int
     , speed : Int
-    , living : Bool
+    , state : State
     }
+
+
+type State
+    = Blocked
+    | Waiting
 
 
 init : Snake
 init =
-    { direction = ( 0, 0 )
-    , body = [ ( 15, 15 ) ]
+    { body = [ ( 15, 15 ) ]
+    , direction = ( 0, 0 )
+    , living = True
     , size = 1
     , speed = 1
-    , living = True
+    , state = Waiting
     }
 
 
-logicUpdate : ( Int, Int ) -> Snake -> Snake
-logicUpdate direction snake =
-    { snake | direction = direction }
+logicUpdate : ( Float, Float ) -> Snake -> Snake
+logicUpdate rawDirection snake =
+    let
+        direction =
+            blockAndNormalizeDirection snake.direction rawDirection
+
+        newState =
+            if direction == (0, 0) then
+                Waiting 
+            else
+                Blocked 
+    in
+    if snake.state == Waiting then
+        { snake | direction = direction, state = newState}
+
+    else
+        snake
+
+
+blockAndNormalizeDirection : ( Int, Int ) -> ( Float, Float ) -> ( Int, Int )
+blockAndNormalizeDirection current raw =
+    raw 
+        |> blockDiagonals current
+        |> blockReverse current
+        |> continueOnZero current
+
+
+blockDiagonals : ( Int, Int ) -> ( Float, Float ) -> (Int, Int)
+blockDiagonals current raw =
+    if V.magnitude raw > 1 then 
+    -- block diagonals
+        case current of 
+            ( 0, 0) ->
+                (0, 0)
+                
+            ( 0, _) ->
+                ( V.toInt raw |> Tuple.first, 0)
+
+            (_, 0) ->
+                ( 0, V.toInt raw |> Tuple.second)
+
+            _ ->
+                current
+    else
+        V.toInt raw
+
+
+blockReverse : ( Int, Int ) -> ( Int, Int) -> (Int, Int)
+blockReverse current new =
+    if current == (V.negate new) then 
+        current
+
+    else 
+        new
+
+continueOnZero : ( Int, Int ) -> ( Int, Int ) -> ( Int, Int )
+continueOnZero current new =
+    if new == ( 0, 0 ) then
+        current
+
+    else
+        new
+
 
 
 update : Snake -> Snake
@@ -70,7 +140,7 @@ update snake =
                 |> Maybe.withDefault snake.body
     in
     if living then
-        { snake | body = newBody }
+        { snake | body = newBody, state = Waiting }
 
     else
         { snake | living = living }
@@ -87,7 +157,7 @@ render snake =
                 [ Canvas.fill Color.white ]
 
             else
-                [ Canvas.fill Color.red ]
+                [ Canvas.fill (CU.color red) ]
     in
     Canvas.shapes attrs <|
         List.map (bodyRenderable << V.fromInt) snake.body

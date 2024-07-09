@@ -1,12 +1,11 @@
-module Experiments.Snake exposing (Model, Module, Msg, init)
+module Experiments.SnakeGame exposing (Model, Module, Msg, init)
 
 import Canvas as Canvas
 import Canvas.Settings as Canvas
-import Color as Color
 import Element exposing (..)
 import Element.Font as Font exposing (Font)
-import Experiments.Snake.Player as Player exposing (Snake)
-import Palette.Color exposing (white)
+import Experiments.Snake.Snake as Player exposing (Snake)
+import Palette.Color exposing (..)
 import Palette.Spacing exposing (s2)
 import Task exposing (Task)
 import Utils.Canvas as CU
@@ -103,8 +102,12 @@ type Msg
 
 init_ : ( Model, Cmd Msg )
 init_ =
-    ( { snake = Player.init
-      , food = ( 0, 0 )
+    let
+        snake =
+            Player.init
+    in
+    ( { snake = snake 
+      , food = newFood 0 snake.body
       , score = 0
       , tickAndKeys = TickWithKeys.init
       , frame = 0
@@ -156,7 +159,7 @@ game { snake, food } =
             Player.render snake
 
         foodRenderable =
-            Canvas.shapes [ Canvas.fill Color.white ] [ Canvas.rect (V.fromInt food) 1 1 ]
+            Canvas.shapes [ Canvas.fill (CU.color green) ] [ Canvas.rect (V.fromInt food) 1 1 ]
     in
     [ CU.scale 20 20 <|
         Canvas.group [] [ snakeRenderable, foodRenderable ]
@@ -177,21 +180,21 @@ update msg model =
                 newModel =
                     { model | tickAndKeys = newTK }
             in
-            logicUpdate newTK.time.elapsed newTK.state newModel
+            case tkMsg of
+                TickWithKeys.TickMsg _ ->
+                    logicUpdate newTK.time.elapsed newTK.state newModel
+
+                _ ->
+                    ( newModel, Cmd.none )
 
 
 logicUpdate : Float -> GetKeyState -> Model -> ( Model, Cmd Msg )
-logicUpdate time (( keyf, _, wasd_ ) as gks) model =
-    if keyf (Keyboard.Key "r") == Keyboard.Down then
+logicUpdate time (( keyf, _, wasd ) as gks) model =
+    if keyf (Keyboard.Key "r") == Keyboard.Down && not model.snake.living then
         init_
 
     else
         let
-            wasd =
-                blockWasd
-                    model.snake.direction
-                    (V.toInt wasd_)
-
             newSnake =
                 Player.logicUpdate wasd model.snake
 
@@ -216,9 +219,9 @@ gameUpdate time ( keyf, arrows, wasd ) model =
                 (Player.update model.snake)
                 model.food
 
-        ( newFood, newScore ) =
+        ( newFood_, newScore ) =
             if eat then
-                ( ( Random.randomBetween 0 29 time, Random.randomBetween 0 29 (time + 0.001) ), model.score + 5 )
+                ( newFood time newSnake.body, model.score + 5 )
 
             else
                 ( model.food, model.score )
@@ -230,61 +233,22 @@ gameUpdate time ( keyf, arrows, wasd ) model =
             else
                 model.skipFrames
     in
-    ( { model | snake = newSnake, food = newFood, skipFrames = skipFrames, score = newScore }, Cmd.none )
+    ( { model | snake = newSnake, food = newFood_, skipFrames = skipFrames, score = newScore }, Cmd.none )
 
-
-blockWasd : ( Int, Int ) -> ( Int, Int ) -> ( Int, Int )
-blockWasd ( oldX, oldY ) ( newX, newY ) =
+newFood : Float -> List (Int, Int) -> (Int, Int)
+newFood time body =
     let
-        newDirection =
-            if newX /= 0 then
-                if newX > 0 then
-                    ( 1, 0 )
+        x =
+            Random.randomBetween 0 29 time 
 
-                else
-                    ( -1, 0 )
-
-            else if newY /= 0 then
-                if newY > 0 then
-                    ( 0, 1 )
-
-                else
-                    ( 0, -1 )
-
-            else
-                ( 0, 0 )
-
-        finalDirection =
-            if newDirection == ( 0, 0 ) then
-                ( oldX, oldY )
-
-            else if isOppositeDirection ( oldX, oldY ) newDirection then
-                ( oldX, oldY )
-
-            else
-                newDirection
+        y =
+            Random.randomBetween 0 29 (time + 0.001) 
     in
-    finalDirection
+    if List.member (x, y) body then
+        newFood (time + 0.002) body
 
-
-isOppositeDirection : ( number, number ) -> ( number, number ) -> Bool
-isOppositeDirection ( oldX, oldY ) ( newX, newY ) =
-    (oldX /= 0 && newX == -oldX) || (oldY /= 0 && newY == -oldY)
-
-
-
--- if newX /= 0 then
---     if newX > 0 then
---         ( 1, 0 )
---     else
---         ( -1, 0 )
--- else if newY /= 0 then
---     if newY > 0 then
---         ( 0, 1 )
---     else
---         ( 0, -1 )
--- else
---     ( 0, 0 )
+    else
+        ( x, y )
 
 
 subscriptions : Model -> Sub Msg

@@ -3,7 +3,7 @@ module Main exposing (main)
 import Browser
 import Element exposing (..)
 import Experiments.Raycast as Raycast
-import Experiments.Snake as Snake
+import Experiments.SnakeGame as Snake
 import Html exposing (Html)
 import Palette.Navbar exposing (navbar)
 

@@ -3,7 +3,8 @@ module Utils.Canvas exposing (..)
 import Canvas as Canvas
 import Canvas.Settings as Canvas
 import Canvas.Settings.Advanced as Canvas
-
+import Element as Element
+import Color as Color
 
 transformAndRender : ( Int, Int ) -> ( Float, Float ) -> ( Float, Float ) -> Canvas.Renderable -> Canvas.Renderable
 transformAndRender ( width, height ) ( x, y ) ( w, h ) renderable =
@@ -52,3 +53,10 @@ transform ( width, height ) ( x, y ) ( w, h ) =
 translateTo : ( Float, Float ) -> List Canvas.Setting
 translateTo ( x, y ) =
     [ Canvas.transform [ Canvas.translate x y ] ]
+
+
+color : Element.Color -> Color.Color
+color c =
+    c
+        |> Element.toRgb
+        |> Color.fromRgba

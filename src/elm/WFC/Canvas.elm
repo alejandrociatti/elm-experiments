@@ -166,7 +166,7 @@ view model =
 body : List (Element Msg) -> Element Msg
 body elements =
     column
-        [ width fill, paddingXY s6 s4, spacing s5, Background.color gray ]
+        [ width fill, paddingXY s6 s4, spacing s5, Background.color gray35 ]
         elements
 
 

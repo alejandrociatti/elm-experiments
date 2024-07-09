@@ -310,7 +310,7 @@ leftExplanationAndSettings projection fov =
                     [ Element.width Element.fill
                     , Element.height (Element.px 2)
                     , centerY
-                    , Background.color Color.gray
+                    , Background.color Color.gray35
                     , Border.rounded 2
                     ]
                     Element.none
@@ -333,7 +333,7 @@ leftExplanationAndSettings projection fov =
             , paddingXY s2 s4
             , Font.size s2
             , Font.color white
-            , Background.color Color.gray
+            , Background.color Color.gray35
             , Border.rounded 2
             ]
             { onPress = Just <| ChangeFov 60
@@ -345,7 +345,7 @@ leftExplanationAndSettings projection fov =
             , paddingXY s2 s4
             , Font.size s2
             , Font.color white
-            , Background.color Color.gray
+            , Background.color Color.gray35
             , Border.rounded 2
             ]
             { onPress = Just <| RandomizeBounds
@@ -368,11 +368,11 @@ toggle projection =
         attrs isCurrent =
             if isCurrent then
                 [ Font.color white
-                , Background.color Color.gray
+                , Background.color Color.gray35
                 ]
 
             else
-                [ Font.color Color.gray
+                [ Font.color Color.gray35
                 , Background.color black
                 ]
     in

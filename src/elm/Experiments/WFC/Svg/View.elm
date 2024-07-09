@@ -1,8 +1,8 @@
 module Experiments.WFC.Svg.View exposing (..)
 
-import GraphicSVG exposing (Shape, group, move, scale)
 import Experiments.WFC.Svg.Tileset1 exposing (openTile)
 import Experiments.WFC.Svg.Types exposing (GridTile(..), Msg, Settings)
+import GraphicSVG exposing (Shape, group, move, scale)
 
 
 board : Settings -> List GridTile -> Shape Msg

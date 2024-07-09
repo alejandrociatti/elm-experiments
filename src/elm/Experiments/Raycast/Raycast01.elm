@@ -13,6 +13,10 @@ import Element.Font as Font
 import Element.Input exposing (button)
 import Experiments.Raycast.Boundary as Boundary exposing (Boundary)
 import Experiments.Raycast.Ray as Ray exposing (Ray)
+import Experiments.WFC.Canvas.Grid exposing (collapse)
+import Experiments.WFC.Canvas.Tileset1 exposing (tiles)
+import Experiments.WFC.Canvas.Types exposing (..)
+import Experiments.WFC.Canvas.View exposing (board)
 import Html exposing (Html)
 import Html.Attributes as HA
 import Html.Events.Extra.Mouse as Mouse
@@ -21,10 +25,6 @@ import Palette.Color exposing (..)
 import Palette.Navbar exposing (navbar)
 import Palette.Spacing exposing (..)
 import Time exposing (posixToMillis)
-import Experiments.WFC.Canvas.Grid exposing (collapse)
-import Experiments.WFC.Canvas.Tileset1 exposing (tiles)
-import Experiments.WFC.Canvas.Types exposing (..)
-import Experiments.WFC.Canvas.View exposing (board)
 
 
 

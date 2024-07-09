@@ -2,13 +2,13 @@ module Experiments.Snake.Snake exposing (..)
 
 import Bitwise exposing (and)
 import Canvas as Canvas
-import Utils.Canvas as CU
-import Palette.Color exposing (..) 
-import Color as Color
 import Canvas.Settings as Canvas
+import Color as Color
+import Html exposing (a)
+import Palette.Color exposing (..)
+import Utils.Canvas as CU
 import Utils.Number exposing (constrain, constrainReverse)
 import Utils.Vector2 as V
-import Html exposing (a)
 
 
 type alias Snake =
@@ -44,13 +44,14 @@ logicUpdate rawDirection snake =
             blockAndNormalizeDirection snake.direction rawDirection
 
         newState =
-            if direction == (0, 0) then
-                Waiting 
+            if direction == ( 0, 0 ) then
+                Waiting
+
             else
-                Blocked 
+                Blocked
     in
     if snake.state == Waiting then
-        { snake | direction = direction, state = newState}
+        { snake | direction = direction, state = newState }
 
     else
         snake
@@ -58,39 +59,41 @@ logicUpdate rawDirection snake =
 
 blockAndNormalizeDirection : ( Int, Int ) -> ( Float, Float ) -> ( Int, Int )
 blockAndNormalizeDirection current raw =
-    raw 
+    raw
         |> blockDiagonals current
         |> blockReverse current
         |> continueOnZero current
 
 
-blockDiagonals : ( Int, Int ) -> ( Float, Float ) -> (Int, Int)
+blockDiagonals : ( Int, Int ) -> ( Float, Float ) -> ( Int, Int )
 blockDiagonals current raw =
-    if V.magnitude raw > 1 then 
-    -- block diagonals
-        case current of 
-            ( 0, 0) ->
-                (0, 0)
-                
-            ( 0, _) ->
-                ( V.toInt raw |> Tuple.first, 0)
+    if V.magnitude raw > 1 then
+        -- block diagonals
+        case current of
+            ( 0, 0 ) ->
+                ( 0, 0 )
 
-            (_, 0) ->
-                ( 0, V.toInt raw |> Tuple.second)
+            ( 0, _ ) ->
+                ( V.toInt raw |> Tuple.first, 0 )
+
+            ( _, 0 ) ->
+                ( 0, V.toInt raw |> Tuple.second )
 
             _ ->
                 current
+
     else
         V.toInt raw
 
 
-blockReverse : ( Int, Int ) -> ( Int, Int) -> (Int, Int)
+blockReverse : ( Int, Int ) -> ( Int, Int ) -> ( Int, Int )
 blockReverse current new =
-    if current == (V.negate new) then 
+    if current == V.negate new then
         current
 
-    else 
+    else
         new
+
 
 continueOnZero : ( Int, Int ) -> ( Int, Int ) -> ( Int, Int )
 continueOnZero current new =
@@ -99,7 +102,6 @@ continueOnZero current new =
 
     else
         new
-
 
 
 update : Snake -> Snake

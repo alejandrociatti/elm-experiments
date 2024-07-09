@@ -1,10 +1,10 @@
 module Palette.Navbar exposing (..)
 
 import Element exposing (..)
-import Element.Input exposing (button)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
+import Element.Input exposing (button)
 import Palette.Color exposing (..)
 import Palette.Spacing exposing (..)
 
@@ -25,5 +25,5 @@ navbar elements =
                 }
         , row
             [ alignRight, spacing s1 ]
-            elements 
+            elements
         ]

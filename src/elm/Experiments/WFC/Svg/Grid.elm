@@ -1,9 +1,9 @@
 module Experiments.WFC.Svg.Grid exposing (collapse)
 
 import Canvas.Texture exposing (dimensions)
-import List.Extra as LE
 import Experiments.WFC.Common.Tile as Tile exposing (Direction)
 import Experiments.WFC.Svg.Types exposing (GridTile(..), Tile)
+import List.Extra as LE
 
 
 collapse : Int -> Float -> List GridTile -> List GridTile

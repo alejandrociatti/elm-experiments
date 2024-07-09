@@ -4,8 +4,8 @@ import Canvas as Canvas
 import Element exposing (..)
 import Element.Background as Background
 import Element.Font as Font
-import Html.Events exposing (on)
 import Html.Attributes as HA
+import Html.Events exposing (on)
 import Palette.Color exposing (..)
 import Palette.Spacing exposing (..)
 import Palette.Utils exposing (attributeNone)
@@ -48,7 +48,7 @@ canvas settings renderables =
         html <|
             Canvas.toHtml
                 canvasSize
-                [HA.style "background-color" "black"]
+                [ HA.style "background-color" "black" ]
             <|
                 clearCanvas settings
                     :: renderables

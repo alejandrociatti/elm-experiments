@@ -1,13 +1,12 @@
-module Utils.Vector2 exposing (add, distance, fromInt, heading, isZero, normalize, toInt, magnitude, negate)
+module Utils.Vector2 exposing (add, distance, fromInt, heading, isZero, magnitude, negate, normalize, toInt)
 
 
 normalize : ( Float, Float ) -> ( Float, Float )
 normalize ( x, y ) =
     let
         magnitude_ =
-            magnitude (x, y)
+            magnitude ( x, y )
     in
-      
     if magnitude_ == 0 then
         ( 0, 0 )
         -- Handle zero vector to avoid division by zero
@@ -17,8 +16,8 @@ normalize ( x, y ) =
 
 
 magnitude : ( Float, Float ) -> Float
-magnitude (x, y) =
-            sqrt (x * x + y * y)
+magnitude ( x, y ) =
+    sqrt (x * x + y * y)
 
 
 isZero : ( number, number ) -> Bool

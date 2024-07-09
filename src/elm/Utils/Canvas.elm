@@ -3,8 +3,9 @@ module Utils.Canvas exposing (..)
 import Canvas as Canvas
 import Canvas.Settings as Canvas
 import Canvas.Settings.Advanced as Canvas
-import Element as Element
 import Color as Color
+import Element as Element
+
 
 transformAndRender : ( Int, Int ) -> ( Float, Float ) -> ( Float, Float ) -> Canvas.Renderable -> Canvas.Renderable
 transformAndRender ( width, height ) ( x, y ) ( w, h ) renderable =

@@ -27,7 +27,7 @@ generate rows cols generator =
 
         data =
             List.range 0 (rows * cols - 1)
-                |> List.map generatorMapper 
+                |> List.map generatorMapper
     in
     { data = data, rows = rows, cols = cols }
 
@@ -67,6 +67,6 @@ shiftDown grid =
     { grid | data = lastRow ++ restRows }
 
 
-fromRawIndex : Int -> Int -> (Int, Int)
+fromRawIndex : Int -> Int -> ( Int, Int )
 fromRawIndex cols index =
-    ( index // cols, modBy cols index)
+    ( index // cols, modBy cols index )

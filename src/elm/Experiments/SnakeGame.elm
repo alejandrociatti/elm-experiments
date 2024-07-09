@@ -106,7 +106,7 @@ init_ =
         snake =
             Player.init
     in
-    ( { snake = snake 
+    ( { snake = snake
       , food = newFood 0 snake.body
       , score = 0
       , tickAndKeys = TickWithKeys.init
@@ -235,16 +235,17 @@ gameUpdate time ( keyf, arrows, wasd ) model =
     in
     ( { model | snake = newSnake, food = newFood_, skipFrames = skipFrames, score = newScore }, Cmd.none )
 
-newFood : Float -> List (Int, Int) -> (Int, Int)
+
+newFood : Float -> List ( Int, Int ) -> ( Int, Int )
 newFood time body =
     let
         x =
-            Random.randomBetween 0 29 time 
+            Random.randomBetween 0 29 time
 
         y =
-            Random.randomBetween 0 29 (time + 0.001) 
+            Random.randomBetween 0 29 (time + 0.001)
     in
-    if List.member (x, y) body then
+    if List.member ( x, y ) body then
         newFood (time + 0.002) body
 
     else

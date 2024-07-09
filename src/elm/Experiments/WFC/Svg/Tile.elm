@@ -1,8 +1,8 @@
 module Experiments.WFC.Svg.Tile exposing (..)
 
-import GraphicSVG as Graphics
 import Experiments.WFC.Common.Tile as Tile
 import Experiments.WFC.Svg.Types exposing (Tile)
+import GraphicSVG as Graphics
 
 
 rotate : Tile -> Tile

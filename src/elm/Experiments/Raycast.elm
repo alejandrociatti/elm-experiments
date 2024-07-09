@@ -53,16 +53,16 @@ init { toModel, fromModel, toMsg } =
                 |> Maybe.map (Element.map toMsg << view)
                 |> Maybe.withDefault Element.none
 
-        unmapUpdate : model -> (Model, Cmd Msg) -> (model, Cmd msg)
-        unmapUpdate userModel (innerModel, innerCmd) =
-            ( toModel userModel innerModel 
+        unmapUpdate : model -> ( Model, Cmd Msg ) -> ( model, Cmd msg )
+        unmapUpdate userModel ( innerModel, innerCmd ) =
+            ( toModel userModel innerModel
             , Cmd.map toMsg innerCmd
             )
 
         mapUpdate_ : Msg -> model -> Model -> ( model, Cmd msg )
         mapUpdate_ msg userModel innerModel =
-            update msg innerModel  
-                |> unmapUpdate userModel 
+            update msg innerModel
+                |> unmapUpdate userModel
 
         mapUpdate : Msg -> model -> ( model, Cmd msg )
         mapUpdate msg model =

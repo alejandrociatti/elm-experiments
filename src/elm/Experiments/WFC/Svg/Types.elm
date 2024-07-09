@@ -1,8 +1,8 @@
 module Experiments.WFC.Svg.Types exposing (..)
 
+import Experiments.WFC.Common.Tile as Tile
 import GraphicSVG exposing (Shape)
 import GraphicSVG.EllieApp exposing (GetKeyState)
-import Experiments.WFC.Common.Tile as Tile
 
 
 type alias Tile =

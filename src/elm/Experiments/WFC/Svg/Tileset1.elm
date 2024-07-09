@@ -1,11 +1,11 @@
 module Experiments.WFC.Svg.Tileset1 exposing (openTile, tiles)
 
-import GraphicSVG exposing (Shape, addOutline, black, filled, html, move, rect, solid, white)
-import Html exposing (img)
-import Html.Attributes as HA
 import Experiments.WFC.Common.Tile exposing (Rule(..))
 import Experiments.WFC.Svg.Tile exposing (rotate)
 import Experiments.WFC.Svg.Types exposing (Msg, Tile)
+import GraphicSVG exposing (Shape, addOutline, black, filled, html, move, rect, solid, white)
+import Html exposing (img)
+import Html.Attributes as HA
 
 
 downTile : Shape Msg

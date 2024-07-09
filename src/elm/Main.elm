@@ -20,7 +20,6 @@ main =
         }
 
 
-
 -- MODEL
 
 
@@ -33,6 +32,7 @@ type alias Model =
 type Msg
     = NoOp
     | GotBurgerToggle Bool
+    | GotLandscapeMsg Landscape.Msg
     | GotRaycastMsg Raycast.Msg
     | GotSnakeMsg Snake.Msg
     | ChangeRoute Route
@@ -41,14 +41,14 @@ type Msg
 type Route
     = Raycast Raycast.Model
     | Snake Snake.Model
-    | Landscape
+    | Landscape Landscape.Model
 
 
 init : {} -> ( Model, Cmd Msg )
 init flags =
     -- ( { route = Raycast <| Tuple.first raycastModule.init }
     -- ( { route = Snake <| Tuple.first snakeModule.init
-    ( { route = Landscape
+    ( { route = Landscape Landscape.init
       , burger = initBurger
       }
     , Cmd.none
@@ -104,6 +104,14 @@ update msg model =
         GotBurgerToggle bool ->
             ( { model | burger = Burger.update bool model.burger }, Cmd.none )
 
+        GotLandscapeMsg landscapeMsg ->
+            case model.route of
+                Landscape landscapeModel ->
+                    ( { model | route = Landscape (Landscape.update landscapeMsg landscapeModel) }, Cmd.none )
+
+                _ ->
+                    ( model, Cmd.none )
+
         GotRaycastMsg rcMsg ->
             case model.route of
                 Raycast rcModel ->
@@ -143,8 +151,8 @@ view model =
                 Snake snakeModel ->
                     snakeModule.view model
 
-                Landscape ->
-                    html Landscape.main
+                Landscape landscape ->
+                    html <| Landscape.view landscape
             ]
 
 
@@ -160,7 +168,7 @@ navbarWithRoutes model =
 initBurger : Burger.Model Msg
 initBurger =
     Burger.init GotBurgerToggle
-        [ Burger.menuItem "Landscape" (Just <| ChangeRoute Landscape)
+        [ Burger.menuItem "Landscape" (Just <| ChangeRoute (Landscape <| Landscape.init))
         , Burger.menuItem "Raycast" (Just <| ChangeRoute (Raycast <| Tuple.first raycastModule.init))
         , Burger.menuItem "Snake" (Just <| ChangeRoute (Snake <| Tuple.first snakeModule.init))
         , Burger.menuItemUrl "Wave Function C." "/wfc"
@@ -172,4 +180,5 @@ subscriptions model =
     Sub.batch
         [ raycastModule.subscriptions model
         , snakeModule.subscriptions model
+        , Landscape.subscriptions |> Sub.map GotLandscapeMsg
         ]

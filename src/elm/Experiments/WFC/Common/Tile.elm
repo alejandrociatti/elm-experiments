@@ -1,4 +1,4 @@
-module WFC.Common.Tile exposing (..)
+module Experiments.WFC.Common.Tile exposing (..)
 
 
 type Rule a

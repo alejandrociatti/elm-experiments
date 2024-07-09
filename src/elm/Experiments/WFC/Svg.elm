@@ -1,12 +1,12 @@
-module WFC.Svg exposing (main)
+module Experiments.WFC.Svg exposing (main)
 
 import GraphicSVG exposing (Collage, centered, collage, filled, hotPink, move, size, text)
 import GraphicSVG.EllieApp exposing (GameApp, KeyState(..), Keys(..), gameApp)
 import List.Extra exposing (init)
-import WFC.Svg.Grid exposing (collapse)
-import WFC.Svg.Tileset1 exposing (tiles)
-import WFC.Svg.Types exposing (..)
-import WFC.Svg.View exposing (board)
+import Experiments.WFC.Svg.Grid exposing (collapse)
+import Experiments.WFC.Svg.Tileset1 exposing (tiles)
+import Experiments.WFC.Svg.Types exposing (..)
+import Experiments.WFC.Svg.View exposing (board)
 
 
 initSettings : Settings

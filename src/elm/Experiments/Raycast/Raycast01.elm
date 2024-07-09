@@ -21,10 +21,10 @@ import Palette.Color exposing (..)
 import Palette.Navbar exposing (navbar)
 import Palette.Spacing exposing (..)
 import Time exposing (posixToMillis)
-import WFC.Canvas.Grid exposing (collapse)
-import WFC.Canvas.Tileset1 exposing (tiles)
-import WFC.Canvas.Types exposing (..)
-import WFC.Canvas.View exposing (board)
+import Experiments.WFC.Canvas.Grid exposing (collapse)
+import Experiments.WFC.Canvas.Tileset1 exposing (tiles)
+import Experiments.WFC.Canvas.Types exposing (..)
+import Experiments.WFC.Canvas.View exposing (board)
 
 
 

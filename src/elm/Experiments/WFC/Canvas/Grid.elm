@@ -1,9 +1,9 @@
-module WFC.Canvas.Grid exposing (collapse)
+module Experiments.WFC.Canvas.Grid exposing (collapse)
 
 import Canvas.Texture exposing (dimensions)
 import List.Extra as LE
-import WFC.Canvas.Types exposing (GridTile(..), Tile)
-import WFC.Common.Tile as Tile exposing (Direction)
+import Experiments.WFC.Canvas.Types exposing (GridTile(..), Tile)
+import Experiments.WFC.Common.Tile as Tile exposing (Direction)
 
 
 collapse : Int -> Float -> List GridTile -> List GridTile

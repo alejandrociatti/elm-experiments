@@ -1,11 +1,11 @@
-module WFC.Canvas.Tile exposing (..)
+module Experiments.WFC.Canvas.Tile exposing (..)
 
 import Canvas as Canvas
 import Canvas.Settings exposing (Setting)
 import Canvas.Settings.Advanced as Canvas
 import Canvas.Texture as Canvas
-import WFC.Canvas.Types exposing (Textures, Tile)
-import WFC.Common.Tile as Tile
+import Experiments.WFC.Canvas.Types exposing (Textures, Tile)
+import Experiments.WFC.Common.Tile as Tile
 
 
 rotate : Tile -> Tile

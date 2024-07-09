@@ -1,11 +1,12 @@
-module WFC.Canvas.Types exposing (..)
+module Experiments.WFC.Canvas.Types exposing (..)
 
 import Canvas as Canvas
 import Canvas.Settings exposing (Setting)
 import Canvas.Texture as Canvas
+import Experiments.WFC.Common.Tile as Tile
 import Json.Decode as D
+import Palette.Burger as Burger
 import Time
-import WFC.Common.Tile as Tile
 
 
 type alias Tile =
@@ -34,6 +35,7 @@ type Msg
     | Reset
     | DimensionPlus
     | DimensionMinus
+    | GotBurgerToggle Bool
 
 
 type alias Model =
@@ -43,6 +45,7 @@ type alias Model =
     , grid : List GridTile
     , lastComputation : Float
     , textures : Maybe Textures
+    , burger : Burger.Model Msg
     }
 
 

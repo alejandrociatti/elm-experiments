@@ -2,15 +2,22 @@ module Main exposing (main)
 
 import Browser
 import Element exposing (..)
+import Experiments.Landscape as Landscape
 import Experiments.Raycast as Raycast
 import Experiments.SnakeGame as Snake
 import Html exposing (Html)
+import Palette.Burger as Burger
 import Palette.Navbar exposing (navbar)
 
 
 main : Program {} Model Msg
 main =
-    Browser.element { init = init, update = update, view = view, subscriptions = subscriptions }
+    Browser.element
+        { init = init
+        , update = update
+        , view = view
+        , subscriptions = subscriptions
+        }
 
 
 
@@ -19,11 +26,13 @@ main =
 
 type alias Model =
     { route : Route
+    , burger : Burger.Model Msg
     }
 
 
 type Msg
     = NoOp
+    | GotBurgerToggle Bool
     | GotRaycastMsg Raycast.Msg
     | GotSnakeMsg Snake.Msg
     | ChangeRoute Route
@@ -32,11 +41,16 @@ type Msg
 type Route
     = Raycast Raycast.Model
     | Snake Snake.Model
+    | Landscape
 
 
+init : {} -> ( Model, Cmd Msg )
 init flags =
     -- ( { route = Raycast <| Tuple.first raycastModule.init }
-    ( { route = Snake <| Tuple.first snakeModule.init }
+    -- ( { route = Snake <| Tuple.first snakeModule.init
+    ( { route = Landscape
+      , burger = initBurger
+      }
     , Cmd.none
     )
 
@@ -87,6 +101,9 @@ update msg model =
         NoOp ->
             ( model, Cmd.none )
 
+        GotBurgerToggle bool ->
+            ( { model | burger = Burger.update bool model.burger }, Cmd.none )
+
         GotRaycastMsg rcMsg ->
             case model.route of
                 Raycast rcModel ->
@@ -118,24 +135,36 @@ view model =
     <|
         column
             [ width fill ]
-            [ navbarWithRoutes model.route
+            [ navbarWithRoutes model
             , case model.route of
                 Raycast raycastModel ->
                     raycastModule.view model
 
                 Snake snakeModel ->
                     snakeModule.view model
+
+                Landscape ->
+                    html Landscape.main
             ]
 
 
-navbarWithRoutes : Route -> Element Msg
-navbarWithRoutes route =
-    case route of
-        Raycast _ ->
-            navbar <| Just (ChangeRoute (Snake <| Tuple.first snakeModule.init))
+navbarWithRoutes : Model -> Element Msg
+navbarWithRoutes model =
+    let
+        burger =
+            Burger.view model.burger
+    in
+    navbar [ burger ]
 
-        Snake _ ->
-            navbar <| Just (ChangeRoute (Raycast <| Tuple.first raycastModule.init))
+
+initBurger : Burger.Model Msg
+initBurger =
+    Burger.init GotBurgerToggle
+        [ Burger.menuItem "Landscape" (Just <| ChangeRoute Landscape)
+        , Burger.menuItem "Raycast" (Just <| ChangeRoute (Raycast <| Tuple.first raycastModule.init))
+        , Burger.menuItem "Snake" (Just <| ChangeRoute (Snake <| Tuple.first snakeModule.init))
+        , Burger.menuItemUrl "Wave Function C." "/wfc"
+        ]
 
 
 subscriptions : Model -> Sub Msg

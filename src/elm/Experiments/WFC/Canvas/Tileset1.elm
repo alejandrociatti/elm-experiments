@@ -1,12 +1,12 @@
-module WFC.Canvas.Tileset1 exposing (openTile, tiles)
+module Experiments.WFC.Canvas.Tileset1 exposing (openTile, tiles)
 
 import Canvas exposing (Renderable, rect, shapes, texture)
 import Canvas.Settings exposing (Setting, fill, stroke)
 import Canvas.Texture exposing (Texture)
 import Color
-import WFC.Canvas.Tile exposing (rotate)
-import WFC.Canvas.Types exposing (Textures, Tile)
-import WFC.Common.Tile exposing (Rule(..))
+import Experiments.WFC.Canvas.Tile exposing (rotate)
+import Experiments.WFC.Canvas.Types exposing (Textures, Tile)
+import Experiments.WFC.Common.Tile exposing (Rule(..))
 
 
 downTileView : Textures -> Renderable

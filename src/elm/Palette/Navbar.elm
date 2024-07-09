@@ -9,8 +9,8 @@ import Palette.Color exposing (..)
 import Palette.Spacing exposing (..)
 
 
-navbar : Maybe msg -> Element msg
-navbar onPress =
+navbar : List (Element msg) -> Element msg
+navbar elements =
     row
         [ width fill
         , paddingXY s5 s3
@@ -25,13 +25,5 @@ navbar onPress =
                 }
         , row
             [ alignRight, spacing s1 ]
-            [ button [ Border.color white, Border.width 1, Border.rounded s1, padding s1 ]
-                { onPress = onPress 
-                , label = text "Snake"
-                }
-            -- , link [ Border.color white, Border.width 1, Border.rounded s1, padding s1 ]
-            --     { url = "/wfc-graphicsvg"
-            --     , label = text "wfc-alpha"
-            --     }
-            ]
+            elements 
         ]

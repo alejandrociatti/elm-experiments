@@ -1,11 +1,11 @@
-module WFC.Canvas.View exposing (..)
+module Experiments.WFC.Canvas.View exposing (..)
 
 import Canvas exposing (Renderable, group, text)
 import Canvas.Settings exposing (Setting)
 import Canvas.Settings.Advanced exposing (scale, transform, translate)
 import Canvas.Texture as Canvas
-import WFC.Canvas.Tileset1 exposing (openTile)
-import WFC.Canvas.Types exposing (GridTile(..), Settings, Textures)
+import Experiments.WFC.Canvas.Tileset1 exposing (openTile)
+import Experiments.WFC.Canvas.Types exposing (GridTile(..), Settings, Textures)
 
 
 board : Textures -> Settings -> List GridTile -> Renderable

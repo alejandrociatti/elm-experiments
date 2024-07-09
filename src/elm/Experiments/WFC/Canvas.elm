@@ -1,4 +1,4 @@
-module WFC.Canvas exposing (..)
+module Experiments.WFC.Canvas exposing (..)
 
 import Browser
 import Browser.Events exposing (onAnimationFrame)
@@ -10,16 +10,17 @@ import Element.Background as Background
 import Element.Border as Border exposing (rounded)
 import Element.Font as Font
 import Element.Input exposing (button)
+import Experiments.WFC.Canvas.Grid exposing (collapse)
+import Experiments.WFC.Canvas.Tileset1 exposing (tiles)
+import Experiments.WFC.Canvas.Types exposing (..)
+import Experiments.WFC.Canvas.View exposing (board)
 import Html exposing (Html)
 import List.Extra exposing (init)
+import Palette.Burger as Burger exposing (menuItemUrl)
 import Palette.Color exposing (..)
 import Palette.Navbar exposing (navbar)
 import Palette.Spacing exposing (..)
 import Time exposing (posixToMillis)
-import WFC.Canvas.Grid exposing (collapse)
-import WFC.Canvas.Tileset1 exposing (tiles)
-import WFC.Canvas.Types exposing (..)
-import WFC.Canvas.View exposing (board)
 
 
 initSettings : Settings
@@ -64,6 +65,7 @@ init flags =
       , grid = initGrid settings
       , lastComputation = 0
       , textures = textures
+      , burger = initBurger
       }
     , Cmd.none
     )
@@ -150,6 +152,9 @@ update msg model =
             , Cmd.none
             )
 
+        GotBurgerToggle bool ->
+            ( { model | burger = Burger.update bool model.burger }, Cmd.none )
+
 
 view : Model -> Html Msg
 view model =
@@ -158,7 +163,7 @@ view model =
     <|
         column
             [ width fill ]
-            [ navbar
+            [ navbar [ Burger.view model.burger ]
             , body [ canvas model ]
             ]
 
@@ -290,3 +295,11 @@ collapseEvery waitSeconds previousTime currentTime dimensions grid =
 --         |> outlined (dashed 2) hotPink
 --         |> rotate (degrees (10 * model.time))
 --     ]
+
+
+initBurger : Burger.Model Msg
+initBurger =
+    Burger.init GotBurgerToggle
+        [ menuItemUrl "back" "/"
+        , Burger.menuItemUrl "svg wfc" "/wfc-graphicsvg"
+        ]

@@ -172,7 +172,7 @@ initBurger =
         [ Burger.menuItem "Landscape" (Just <| ChangeRoute (Landscape <| Landscape.init))
         , Burger.menuItem "Raycast" (Just <| ChangeRoute (Raycast <| Tuple.first raycastModule.init))
         , Burger.menuItem "Snake" (Just <| ChangeRoute (Snake <| Tuple.first snakeModule.init))
-        , Burger.menuItemUrl "Wave Function C." "/wfc"
+        , Burger.menuItemUrl "Wave Function C." "/elm-experiments/wfc"
         ]
 
 

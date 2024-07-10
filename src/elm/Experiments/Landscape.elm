@@ -119,7 +119,7 @@ view model =
         , clipDepth = Length.meters 1
         , background = Scene3d.transparentBackground
         , entities =
-            [ Scene3d.mesh (Material.matte Color.blue)
+            [ Scene3d.mesh (Material.metal { baseColor = Color.blue, roughness = 0.1})
                 objectMesh
             ]
         }
